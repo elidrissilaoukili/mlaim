@@ -1,41 +1,35 @@
-#include <stdio.h>
-#include <graphics.h> // For graphical functions
+#include <graphics.h>
+#include <math.h>
+#include <conio.h>
 
-void drawLine(int x0, int y0, int x1, int y1) {
-    int dx = x1 - x0;
-    int dy = y1 - y0;
+void drawHeart(int xCenter, int yCenter, int size, int color)
+{
+    float angle;
+    int x, y;
 
-    int p = 2 * dy - dx; // Initial decision parameter
-    int twoDy = 2 * dy;
-    int twoDyDx = 2 * (dy - dx);
-    
-    int x = x0;
-    int y = y0;
-
-    putpixel(x, y, WHITE); // Draw the initial point
-
-    while (x < x1) {
-        x++;
-        if (p < 0) {
-            p += twoDy;
-        } else {
-            y++;
-            p += twoDyDx;
-        }
-        putpixel(x, y, WHITE); // Draw the point on the screen
+    for (angle = 0; angle < M_PI * 2; angle += 0.01)
+    {
+        x = xCenter + (int)(size * 16 * pow(sin(angle), 3));
+        y = yCenter - (int)(size * (13 * cos(angle) - 5 * cos(2 * angle) - 2 * cos(3 * angle) - cos(4 * angle)));
+        putpixel(x, y, color);
     }
 }
 
-int main() {
-    int gd = DETECT, gm;
-    initgraph(&gd, &gm, NULL); // Initialize the graphics system
+int main()
+{
+    int g = DETECT, m;
+    initgraph(&g, &m, (char *)"");
 
-    int x0 = -500, y0 = -900; // Starting point
-    int x1 = 800, y1 = 300; // Ending point
+    int xCenter = 320; // X coordinate for center of heart
+    int yCenter = 240; // Y coordinate for center of heart
+    int size = 10;     // Size multiplier for the heart
 
-    drawLine(x0, y0, x1, y1); // Draw a line in the first octant
+    setbkcolor(RED);
+    cleardevice();
 
-    getch(); // Wait for a key press
-    closegraph(); // Close the graphics window
+    drawHeart(xCenter, yCenter, size, WHITE);
+
+    getch();
+    closegraph();
     return 0;
 }

@@ -14,62 +14,46 @@ void repere()
     cleardevice();
     setbkcolor(9);
     setcolor(5);
-    line(0, 240, 640, 240);
-    line(320, 0, 320, 480);
+    line(0, 240, 640, 240); // Draw x-axis
+    line(320, 0, 320, 480); // Draw y-axis
 }
 
 void tracer(int xd, int yd)
 {
-    xd = xd + 320;
+    xd = xd + 320; // Adjust for screen center
     yd = 240 - yd;
-    putpixel(xd, yd, 5);
+    putpixel(xd, yd, WHITE);
 }
 
-void cyrcle(int h, int k, int r)
+void poly(int h, int k, int r)
 {
-    int s, i, x, y;
+    int x = 0, y;
 
-    x = 0;
-    y = r;
-    s = 3 - 2 * r;
-
-    while (x < y)
+    while (x <= r / sqrt(2))
     {
-        if (s > 0)
-        {
-            s = s + 4 * (x - y) + 10;
-            y--;
-        }
-        else
-        {
-            s = s + 4 * x + 6;
-        }
+        y = sqrt(r * r - x * x);
         x++;
 
         tracer(x + h, y + k);
+        tracer(-x + h, -y + k);
         tracer(-x + h, y + k);
         tracer(x + h, -y + k);
-        tracer(-x + h, -y + k);
+
         tracer(y + h, x + k);
+        tracer(-y + h, -x + k);
         tracer(-y + h, x + k);
         tracer(y + h, -x + k);
-        tracer(-y + h, -x + k);
     }
 }
 
 int main()
 {
-    int h = 100, k = 100;
-    int r = 100;
-
     init_graph();
     repere();
 
-    cyrcle(h, k, r);
-
-    int hh = -100, kk = -100;
-    int rr = 50;
-    cyrcle(hh, kk, rr);
+    int h = 100, k = 100; // Circle center
+    int r = 100;          // Circle radius
+    poly(h, k, r);        // Call the fixed circle function
 
     getch();
     closegraph();

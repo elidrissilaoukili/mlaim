@@ -12,7 +12,6 @@ void init_graph()
 void repere()
 {
     cleardevice();
-    setbkcolor(15);
     setcolor(9);
     line(0, 240, 640, 240);
     line(320, 0, 320, 480);
@@ -22,22 +21,22 @@ void tracer(int xd, int yd)
 {
     xd = xd + 320;
     yd = 240 - yd;
-    putpixel(xd, yd, 5);
+    putpixel(xd, yd, WHITE);
 }
 
 void polynomial(int xd, int yd, int xf, int yf)
 {
-    int x, y, dx, dy, px, py;
+    int x, y, dx, dy, px, py; // py & px represent steps
     float a, b;
+
+    tracer(xd, yd);
+    tracer(xf, yf);
 
     dx = xf - xd;
     dy = yf - yd;
 
     px = (xd > xf) ? -1 : 1;
     py = (yd > yf) ? -1 : 1;
-
-    tracer(xd, yd);
-    tracer(xf, yf);
 
     if (abs(dx) >= abs(dy))
     {
