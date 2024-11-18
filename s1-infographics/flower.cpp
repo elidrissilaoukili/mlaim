@@ -1,12 +1,19 @@
 #include <stdio.h>
-#include <conio.h>
-#include <math.h>
 #include <graphics.h>
+#include <time.h>
+#include <math.h>
 
 void init_graph()
 {
     int g = DETECT, m;
-    initgraph(&g, &m, NULL);
+    initgraph(&g, &m, (char *)"");
+    setbkcolor(RED);
+}
+
+void close_graph()
+{
+    getch();
+    closegraph();
 }
 
 void repere()
@@ -18,6 +25,7 @@ void repere()
     line(320, 0, 320, 480);
 }
 
+// draw
 void tracer(int xd, int yd)
 {
     xd = xd + 320;
@@ -25,10 +33,11 @@ void tracer(int xd, int yd)
     putpixel(xd, yd, WHITE);
 }
 
-void ellipse_bres(int h, int k, int r)
+// draw circle with bresnham algorithm
+void draw_circle(int h, int k, int r)
 {
     int s, x, y;
-    
+
     s = 3 - 2 * r;
     x = 0;
     y = r;
@@ -58,19 +67,32 @@ void ellipse_bres(int h, int k, int r)
     }
 }
 
-int main()
+// draw line with bresnham algorithm
+void draw_line(int x1, int y1, int x2, int y2)
 {
-    int g = DETECT, m;
-    initgraph(&g, &m, NULL);
+    int dx = abs(x2 - x1);
+    int dy = abs(y2 - y1);
+    int sx = (x1 < x2) ? 1 : -1;
+    int sy = (y1 < y2) ? 1 : -1;
+    int err = dx - dy;
 
-    int h = 100, k = 100;   // center
-    int r = 100;            // radius
+    while (1)
+    {
+        tracer(x1, y1);
 
-    repere();
-    ellipse_bres(h, k, r);
+        if (x1 == x2 && y1 == y2)
+            break;
 
-    getch();
-    closegraph();
-
-    return 0;
+        int e2 = 2 * err;
+        if (e2 > -dy)
+        {
+            err -= dy;
+            x1 += sx;
+        }
+        if (e2 < dx)
+        {
+            err += dx;
+            y1 += sy;
+        }
+    }
 }

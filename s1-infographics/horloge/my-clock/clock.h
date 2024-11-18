@@ -10,8 +10,25 @@ void clock_segments(int x_center, int y_center, int radius)
         xd = x_center + (radius * cos(angle));
         yd = y_center - (radius * sin(angle));
 
-        xf = x_center + ((radius - 10) * cos(angle));
-        yf = y_center - ((radius - 10) * sin(angle));
+        xf = x_center + ((radius - 20) * cos(angle));
+        yf = y_center - ((radius - 20) * sin(angle));
+
+        draw_line(xd, yd, xf, yf);
+    }
+}
+
+void clock_small_segments(int x_center, int y_center, int radius)
+{
+    for (int i = 0; i < 60; i++)
+    {
+        float angle = i * M_PI / 30;
+
+        int xd, xf, yd, yf;
+        xd = x_center + (radius * cos(angle));
+        yd = y_center - (radius * sin(angle));
+
+        xf = x_center + ((radius - 5) * cos(angle));
+        yf = y_center - ((radius - 5) * sin(angle));
 
         draw_line(xd, yd, xf, yf);
     }
@@ -23,6 +40,7 @@ void clock_frame(int x_center, int y_center, int radius)
     setlinestyle(0, 0, 2);
     draw_circle(x_center, y_center, radius);
     clock_segments(x_center, y_center, radius);
+    clock_small_segments(x_center, y_center, radius);
 }
 
 void my_clock(int x_center, int y_center, int radius)
@@ -61,5 +79,4 @@ void my_clock(int x_center, int y_center, int radius)
         clock_frame(x_center, y_center, radius);
         delay(1000);
     }
-
 }
