@@ -1,29 +1,4 @@
-#include <stdio.h>
-#include <conio.h>
-#include <math.h>
-#include <graphics.h>
-
-void init_graph()
-{
-    int g = DETECT, m;
-    initgraph(&g, &m, NULL);
-}
-
-void repere()
-{
-    cleardevice();
-    setbkcolor(9);
-    setcolor(5);
-    line(0, 240, 640, 240);
-    line(320, 0, 320, 480);
-}
-
-void tracer(int xd, int yd)
-{
-    xd = xd + 320;
-    yd = 240 - yd;
-    putpixel(xd, yd, WHITE);
-}
+#include "../lib.h"
 
 void cyrcle(int h, int k, int r)
 {

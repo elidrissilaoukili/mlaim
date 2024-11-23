@@ -42,7 +42,7 @@ void ellipse_poly(Point C, int a, int b, double teta = 0)
     }
 }
 
-void flower(Point C, int r = 150 / 2, int a = 40, int b = 20, int petal_number = 8, int color_c = 9, int color_petal = 5)
+void flower(Point C, int r, int a, int b, int petal_number)
 {
     double teta = 0;
 
@@ -68,8 +68,8 @@ int main()
     int g = DETECT, m;
     initgraph(&g, &m, NULL);
 
-    flower({0, 50}, 20);
-    flower({150, 150}, 20);
+    flower({0, 50}, 20, 40, 20, 8);
+    // flower({150, 150}, 20);
 
     getch();
     closegraph();

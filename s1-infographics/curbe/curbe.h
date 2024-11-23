@@ -16,12 +16,7 @@ void close_graph()
     closegraph();
 }
 
-int main()
+void curbe()
 {
-    init_graph();
-
-    line(100, 100, 200, 200);
-
-    close_graph();
-    return 0;
+    line(100, 100, 100, 100);
 }
