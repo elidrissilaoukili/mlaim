@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Rotating Cube</title>
+    <style>
+        body {
+            margin: 0;
+            background-color: black;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+        canvas {
+            border: 1px solid #fff;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+
+<script>
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    
+    // Set canvas dimensions
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+
+    // Function to draw axes
+    function drawAxes() {
+        ctx.strokeStyle = "white";
+        ctx.beginPath();
+        
+        // X-axis
+        ctx.moveTo(0, centerY);
+        ctx.lineTo(canvas.width, centerY);
+        
+        // Y-axis
+        ctx.moveTo(centerX, 0);
+        ctx.lineTo(centerX, canvas.height);
+        
+        ctx.stroke();
+
+        // Labels
+        ctx.fillStyle = "white";
+        ctx.fillText("X+", canvas.width - 20, centerY - 5);
+        ctx.fillText("X-", 10, centerY - 5);
+        ctx.fillText("Y+", centerX + 5, 10);
+        ctx.fillText("Y-", centerX + 5, canvas.height - 10);
+    }
+
+    // Perspective Projection
+    function project3D(x, y, z, D) {
+        const scale = D / (D + z);
+        return {
+            x: centerX + x * scale,
+            y: centerY - y * scale
+        };
+    }
+
+    // Cube vertices
+    const size = 100; // Cube size
+    let angle = 0; // Rotation angle
+    const vertices = [
+        { x: -size, y: -size, z: -size },
+        { x: size, y: -size, z: -size },
+        { x: size, y: size, z: -size },
+        { x: -size, y: size, z: -size },
+        { x: -size, y: -size, z: size },
+        { x: size, y: -size, z: size },
+        { x: size, y: size, z: size },
+        { x: -size, y: size, z: size }
+    ];
+
+    // Function to rotate a point around the Y-axis
+    function rotateY(point, angle) {
+        const cosA = Math.cos(angle);
+        const sinA = Math.sin(angle);
+        return {
+            x: point.x * cosA - point.z * sinA,
+            y: point.y,
+            z: point.x * sinA + point.z * cosA
+        };
+    }
+
+    // Draw edges between projected points
+    function drawLine(p1, p2) {
+        ctx.beginPath();
+        ctx.moveTo(p1.x, p1.y);
+        ctx.lineTo(p2.x, p2.y);
+        ctx.stroke();
+    }
+
+    function drawCube() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawAxes();
+
+        ctx.strokeStyle = "cyan";
+
+        // Projected vertices
+        const projected = vertices.map(v => {
+            const rotated = rotateY(v, angle);
+            return project3D(rotated.x, rotated.y, rotated.z, 500);
+        });
+
+        // Define edges (pairs of indices)
+        const edges = [
+            [0, 1], [1, 2], [2, 3], [3, 0], // Front face
+            [4, 5], [5, 6], [6, 7], [7, 4], // Back face
+            [0, 4], [1, 5], [2, 6], [3, 7]  // Connecting edges
+        ];
+
+        // Draw edges
+        edges.forEach(edge => {
+            drawLine(projected[edge[0]], projected[edge[1]]);
+        });
+    }
+
+    function animate() {
+        drawCube();
+        angle += 0.01; // Increment rotation angle
+        requestAnimationFrame(animate);
+    }
+
+    animate();
+</script>
+</body>
+</html>
