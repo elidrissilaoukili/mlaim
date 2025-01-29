@@ -1,77 +1,12 @@
-#include <graphics.h>
-#include <iostream>
-#include <cmath>
-
-using namespace std;
-
-// Function to draw the coordinate axes (repere) in the center
-// void drawRepere()
-// {
-//     int centerX = getmaxx() / 2; // Center X-coordinate
-//     int centerY = getmaxy() / 2; // Center Y-coordinate
-
-//     // Set color for axes
-//     setcolor(WHITE);
-
-//     // Draw X-axis (horizontal line)
-//     line(0, centerY, getmaxx(), centerY);
-
-//     // Draw Y-axis (vertical line)
-//     line(centerX, 0, centerX, getmaxy());
-
-//     // Label the axes
-//     outtextxy(centerX + 5, 5, (char *)"Y+");               // Positive Y direction
-//     outtextxy(centerX + 5, getmaxy() - 15, (char *)"Y-");  // Negative Y direction
-//     outtextxy(getmaxx() - 15, centerY - 15, (char *)"X+"); // Positive X direction
-//     outtextxy(5, centerY - 15, (char *)"X-");              // Negative X direction
-// }
-
-void drawRepere()
-{
-    int centerX = getmaxx() / 2; // Center X-coordinate
-    int centerY = getmaxy() / 2; // Center Y-coordinate
-    int centerZ = 0;             // Z-coordinate will be represented on a 2D plane
-
-    // Set color for axes
-    setcolor(WHITE);
-
-    // Draw X-axis (horizontal line)
-    line(0, centerY, getmaxx(), centerY);
-
-    // Draw Y-axis (vertical line)
-    line(centerX, 0, centerX, getmaxy());
-
-    // Draw Z-axis (diagonal line between -X and -Y, making it longer)
-    line(centerX, centerY, centerX - 200, centerY + 200); // Increased the length of the Z-axis
-
-    // Label the axes
-    outtextxy(centerX + 5, 5, (char *)"Y+");               // Positive Y direction
-    outtextxy(centerX + 5, getmaxy() - 15, (char *)"Y-");  // Negative Y direction
-    outtextxy(getmaxx() - 15, centerY - 15, (char *)"X+"); // Positive X direction
-    outtextxy(5, centerY - 15, (char *)"X-");              // Negative X direction
-    outtextxy(centerX - 215, centerY + 215, (char *)"Z+"); // Label for the extended Z-axis
-
-    // Optionally, you could add negative Z label
-    // outtextxy(centerX + 15, centerY - 15, (char *)"Z-");
-}
+#include "./lib.h"
 
 // Function to project point P onto the plane
 void perspectiveProjection(int x, int y, int z, int n1, int n2, int n3, int D, int &xp, int &yp)
 {
-    // Calculate scaling factor (lambda) for the projection
     float lambda = float(D) / (n1 * x + n2 * y + n3 * z);
 
-    // Projected point coordinates
-    xp = lambda * x; // X coordinate
-    yp = lambda * y; // Y coordinate
-}
-
-// The oblique projection
-void obliqueProjection(int x, int y, int z, float alpha, int scale, int &xp, int &yp)
-{
-    // Calculate the 2D projection
-    xp = x + z * scale * cos(alpha); // Skew x based on z
-    yp = y + z * scale * sin(alpha); // Skew y based on z
+    xp = lambda * x;
+    yp = lambda * y;
 }
 
 // Function to draw a 3D Cube
@@ -121,7 +56,7 @@ void drawCube(int x, int y, int z, int size, int n1, int n2, int n3, int D)
 }
 
 // Function to draw a 3D cube using orthographic projection
-void drawCubeOrthographic(int x, int y, int z, int size, int n1, int n2, int n3, int D)
+void drawEndViewPoint(int x, int y, int z, int size, int n1, int n2, int n3, int D)
 {
     // Define an offset for depth perception (simulated)
     int zOffset = size / 32;
@@ -171,35 +106,22 @@ void drawCubeOrthographic(int x, int y, int z, int size, int n1, int n2, int n3,
 
 int main()
 {
-    // Initialize graphics
-    int g = DETECT, m;
-    initgraph(&g, &m, (char *)"");
-    setbkcolor(BLACK); // Set background color
-    cleardevice();
-
-    // Draw repere (coordinate axes)
-    drawRepere();
-
-    // Cube properties: position (centered), size, and plane properties
-    // int x = 100, y = 70, z = -25, size = 50; // Increase size and center the cube
-    // int D = 50;                              // Distance of the plane from origin
+    init_graph();
+    drawReperexyz();
 
     // Draw the 3D cube
-    int x =0, y = 0, z = 200, size = 100;
-    int n1 = 0, n2 = 0, n3 = 1; // Plane normal (Z = d plane)
-    int D = 100;
-    drawCube(x, y, z, size, n1, n2, n3, D);
+    // int x = 0, y = 0, z = 200, size = 100;
+    // int n1 = 0, n2 = 0, n3 = 1; // Plane normal (Z = d plane)
+    // int D = 100;
+    // drawCube(x, y, z, size, n1, n2, n3, D);
 
     // Draw a 3D cube with orthographic projection
-    // drawCubeOrthographic(-25, -25, -25, 100);
-    // int x =100, y = 50, z = -10, size = 50;
-    // int n1 = 0, n2 = 0, n3 = 1;
-    // int D = 50;
-    // drawCubeOrthographic(x, y, z, size, n1, n2, n3, D);
+    int x = 100, y = 100, z = -10, size = 100;
+    int n1 = 0, n2 = 0, n3 = 1;
+    int D = 50;
+    drawEndViewPoint(x, y, z, size, n1, n2, n3, D);
 
-    // Wait for user input and close graphics
-    getch();
-    closegraph();
+    close_graph();
 
     return 0;
 }
