@@ -34,10 +34,20 @@ void rotateCube(float angleX, float angleY)
     }
 }
 
-void projectCavalier(float x, float y, float z, int &x2d, int &y2d)
+// Draw 3D axes
+void drawAxes(int centerX, int centerY)
 {
-    x2d = x + z * cos(45 * M_PI / 180);
-    y2d = y + z * sin(45 * M_PI / 180);
+    setcolor(RED);
+    line(centerX, centerY, centerX + 150, centerY);    // X-axis
+    outtextxy(centerX + 155, centerY, "X");
+    
+    setcolor(GREEN);
+    line(centerX, centerY, centerX, centerY - 150);    // Y-axis
+    outtextxy(centerX, centerY - 155, "Y");
+    
+    setcolor(BLUE);
+    line(centerX, centerY, centerX + 100, centerY + 100); // Z-axis (diagonal)
+    outtextxy(centerX + 105, centerY + 105, "Z");
 }
 
 // Draw cube
@@ -48,23 +58,17 @@ void drawCube(int centerX, int centerY)
     for (int i = 0; i < 8; i++)
     {
         projected[i][0] = centerX + cube[i][0];
-        projected[i][1] = centerY + cube[i][1];
+        projected[i][1] = centerY - cube[i][1]; // Invert Y-axis for proper graphics alignment
     }
 
     // Define cube edges
     int edges[12][2] = {
         {0, 1}, {1, 2}, {2, 3}, {3, 0}, // Front face
-        {4, 5},
-        {5, 6},
-        {6, 7},
-        {7, 4}, // Back face
-        {0, 4},
-        {1, 5},
-        {2, 6},
-        {3, 7} // Connections
+        {4, 5}, {5, 6}, {6, 7}, {7, 4}, // Back face
+        {0, 4}, {1, 5}, {2, 6}, {3, 7}  // Connections
     };
 
-    // Draw edges
+    setcolor(WHITE);
     for (int i = 0; i < 12; i++)
     {
         line(
@@ -82,14 +86,16 @@ int main()
     initgraph(&gd, &gm, (char *)"");
 
     float angleX = 0, angleY = 0;
+    int centerX = getmaxx() / 2, centerY = getmaxy() / 2;
 
     while (!kbhit())
     {
         cleardevice();
+        drawAxes(centerX, centerY);
         rotateCube(angleX, angleY);
-        drawCube(getmaxx() / 2, getmaxy() / 2);
-        angleX += 0.02; // Rotate around X-axis
-        angleY += 0.03; // Rotate around Y-axis
+        drawCube(centerX, centerY);
+        angleX += 0.02;
+        angleY += 0.03;
         delay(500);
     }
 
