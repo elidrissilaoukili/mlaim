@@ -16,7 +16,7 @@ void close_graph()
 }
 
 // Fonction pour afficher les axes 3D
-void axes3()
+void draw_reper()
 {
     int maxx = getmaxx();
     int maxy = getmaxy();
@@ -252,7 +252,7 @@ int main()
 {
 
     init_graph(900, 900);
-    axes3();
+    draw_reper();
 
     int X = -100 * 2, Y = 50 * 2, Z = 20 * 2;
     int Ix = -50 * 2, Iy = 25 * 2, Iz = 10 * 2;
@@ -286,7 +286,7 @@ int main()
 
         teta * 180 / M_PI;
 
-        axes3();
+        draw_reper();
         T_I_(points_XYZ, -100, 50, 20);
         R_Z(points_XYZ, teta);
         T_I(points_XYZ, -100, 50, 20);

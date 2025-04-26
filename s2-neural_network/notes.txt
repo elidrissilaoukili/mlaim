@@ -1,0 +1,24 @@
+# Notes:
+- The dataset contains 768 samples with 8 features (X1 to X8) and 2 target variables (Y1 and Y2).
+- The data has been split into training (614 samples) and testing (154 samples) sets.
+- Two models are implemented:
+    - **ELM (Extreme Learning Machine)**: A fast, single-layer feedforward neural network.
+    - **BP (Backpropagation)**: A multi-layer perceptron regressor from `sklearn`.
+
+### Observations:
+1. **ELM Results**:
+     - Heating Load (Y1) MSE: 15.43
+     - Cooling Load (Y2) MSE: 14.05
+2. **BP Results**:
+     - Heating Load (Y1) MSE: 20.42
+     - Cooling Load (Y2) MSE: 16.03
+
+### Insights:
+- ELM performs better for Heating Load (Y1).
+- BP performs better for Cooling Load (Y2).
+- Feature importance analysis suggests that different features influence Y1 and Y2 predictions.
+
+### Next Steps:
+- Visualize the predictions vs actual values for both models.
+- Experiment with different hidden layer sizes and activation functions for ELM and BP.
+- Consider ensemble methods or hybrid models for improved performance.

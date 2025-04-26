@@ -38,16 +38,16 @@ void rotateCube(float angleX, float angleY)
 void drawAxes(int centerX, int centerY)
 {
     setcolor(RED);
-    line(centerX, centerY, centerX + 150, centerY);    // X-axis
-    outtextxy(centerX + 155, centerY, "X");
-    
+    line(centerX, centerY, centerX + 150, centerY); // X-axis
+    outtextxy(centerX + 155, centerY, (char *)"X");
+
     setcolor(GREEN);
-    line(centerX, centerY, centerX, centerY - 150);    // Y-axis
-    outtextxy(centerX, centerY - 155, "Y");
-    
+    line(centerX, centerY, centerX, centerY - 150); // Y-axis
+    outtextxy(centerX, centerY - 155, (char *)"Y");
+
     setcolor(BLUE);
     line(centerX, centerY, centerX + 100, centerY + 100); // Z-axis (diagonal)
-    outtextxy(centerX + 105, centerY + 105, "Z");
+    outtextxy(centerX + 105, centerY + 105, (char *)"Z");
 }
 
 // Draw cube
@@ -64,8 +64,14 @@ void drawCube(int centerX, int centerY)
     // Define cube edges
     int edges[12][2] = {
         {0, 1}, {1, 2}, {2, 3}, {3, 0}, // Front face
-        {4, 5}, {5, 6}, {6, 7}, {7, 4}, // Back face
-        {0, 4}, {1, 5}, {2, 6}, {3, 7}  // Connections
+        {4, 5},
+        {5, 6},
+        {6, 7},
+        {7, 4}, // Back face
+        {0, 4},
+        {1, 5},
+        {2, 6},
+        {3, 7} // Connections
     };
 
     setcolor(WHITE);
