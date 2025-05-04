@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<additional xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/additional_file.xsd">
+    <!-- Arrêts de bus corrigés -->
+    <busStop id="busStop_1" lane="e2_1" startPos="5" endPos="25" friendlyPos="true"/>
+    <busStop id="busStop_2" lane="e4_1" startPos="5" endPos="25" friendlyPos="true"/>
+    <busStop id="busStop_3" lane="e7_1" startPos="5" endPos="25" friendlyPos="true"/>
+    <busStop id="busStop_4" lane="e10_0" startPos="5" endPos="25" friendlyPos="true"/>
+    
+    <!-- Détecteurs d'émissions corrigés -->
+    <laneAreaDetector id="emissions_e2" lane="e2_0" pos="0" endPos="42" freq="60" file="emissions_e2.xml" friendlyPos="true"/>
+    <laneAreaDetector id="emissions_e3" lane="e3_0" pos="0" endPos="50" freq="60" file="emissions_e3.xml" friendlyPos="true"/>
+    <laneAreaDetector id="emissions_e6" lane="e6_0" pos="0" endPos="50" freq="60" file="emissions_e6.xml" friendlyPos="true"/>
+    <laneAreaDetector id="emissions_e9" lane="e9_0" pos="0" endPos="50" freq="60" file="emissions_e9.xml" friendlyPos="true"/>
+    
+    <!-- Configuration simplifiée -->
+    <edgeData id="edge_traffic" freq="300" file="edge_traffic.xml" excludeEmpty="true"/>
+</additional>

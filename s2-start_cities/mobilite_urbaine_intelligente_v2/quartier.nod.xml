@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<nodes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/nodes_file.xsd">
+    <!-- Définition des 4 intersections principales -->
+    <node id="i1" x="0" y="100" type="traffic_light" tlType="actuated"/>
+    <node id="i2" x="100" y="100" type="traffic_light" tlType="actuated"/>
+    <node id="i3" x="100" y="0" type="traffic_light" tlType="actuated"/>
+    <node id="i4" x="0" y="0" type="traffic_light" tlType="actuated"/>
+    
+    <!-- Nœuds externes pour les entrées/sorties du réseau -->
+    <node id="n1" x="-100" y="100" type="priority"/>
+    <node id="n2" x="100" y="200" type="priority"/>
+    <node id="n3" x="200" y="0" type="priority"/>
+    <node id="n4" x="0" y="-100" type="priority"/>
+    
+    <!-- Nœuds pour les arrêts de bus -->
+    <node id="bs1" x="-50" y="100" type="priority"/>
+    <node id="bs2" x="100" y="150" type="priority"/>
+    <node id="bs3" x="150" y="0" type="priority"/>
+    <node id="bs4" x="0" y="-50" type="priority"/>
+</nodes>

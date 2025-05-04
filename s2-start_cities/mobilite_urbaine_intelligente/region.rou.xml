@@ -1,0 +1,9 @@
+<routes>
+    <vType id="car" accel="2.6" decel="4.5" length="5" emissionClass="HBEFA3/PC_G_EU4" />
+    <vType id="bus" accel="1.2" decel="4.0" length="12" emissionClass="HBEFA3/Bus_D_EU4"
+        color="1,0,0" />
+    <flow id="cars" type="car" begin="0" end="360" number="500" from="edge1" to="edge2" />
+    <flow id="normal_bus" type="bus" begin="0" end="100" number="20" from="edge1" to="edge2" />
+    <flow id="reduced_bus" type="bus" begin="101" end="360" number="2" from="edge1" to="edge2" />
+</routes>
+  

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<edges xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/edges_file.xsd">
+    <!-- Routes principales (50 km/h) -->
+    <edge id="e1" from="n1" to="bs1" numLanes="2" speed="13.89" priority="1"/>
+    <edge id="e1_" from="bs1" to="n1" numLanes="2" speed="13.89" priority="1"/>
+    
+    <edge id="e2" from="bs1" to="i1" numLanes="2" speed="13.89" priority="1"/>
+    <edge id="e2_" from="i1" to="bs1" numLanes="2" speed="13.89" priority="1"/>
+    
+    <edge id="e3" from="i1" to="i2" numLanes="2" speed="13.89" priority="1"/>
+    <edge id="e3_" from="i2" to="i1" numLanes="2" speed="13.89" priority="1"/>
+    
+    <edge id="e4" from="i2" to="bs2" numLanes="2" speed="13.89" priority="1"/>
+    <edge id="e4_" from="bs2" to="i2" numLanes="2" speed="13.89" priority="1"/>
+    
+    <edge id="e5" from="bs2" to="n2" numLanes="2" speed="13.89" priority="1"/>
+    <edge id="e5_" from="n2" to="bs2" numLanes="2" speed="13.89" priority="1"/>
+    
+    <!-- Axe Nord-Sud -->
+    <edge id="e6" from="i2" to="i3" numLanes="2" speed="13.89" priority="1"/>
+    <edge id="e6_" from="i3" to="i2" numLanes="2" speed="13.89" priority="1"/>
+    
+    <edge id="e7" from="i3" to="bs3" numLanes="2" speed="13.89" priority="1"/>
+    <edge id="e7_" from="bs3" to="i3" numLanes="2" speed="13.89" priority="1"/>
+    
+    <edge id="e8" from="bs3" to="n3" numLanes="2" speed="13.89" priority="1"/>
+    <edge id="e8_" from="n3" to="bs3" numLanes="2" speed="13.89" priority="1"/>
+    
+    <!-- Rues secondaires (30 km/h) -->
+    <edge id="e9" from="i3" to="i4" numLanes="1" speed="8.33" priority="0"/>
+    <edge id="e9_" from="i4" to="i3" numLanes="1" speed="8.33" priority="0"/>
+    
+    <edge id="e10" from="i4" to="bs4" numLanes="1" speed="8.33" priority="0"/>
+    <edge id="e10_" from="bs4" to="i4" numLanes="1" speed="8.33" priority="0"/>
+    
+    <edge id="e11" from="bs4" to="n4" numLanes="1" speed="8.33" priority="0"/>
+    <edge id="e11_" from="n4" to="bs4" numLanes="1" speed="8.33" priority="0"/>
+    
+    <edge id="e12" from="i4" to="i1" numLanes="1" speed="8.33" priority="0"/>
+    <edge id="e12_" from="i1" to="i4" numLanes="1" speed="8.33" priority="0"/>
+</edges>

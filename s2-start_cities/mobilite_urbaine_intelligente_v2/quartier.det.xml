@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<additional xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/additional_file.xsd">
+    <!-- Détecteurs pour mesurer la longueur des files aux intersections -->
+    <!-- Intersection i1 -->
+    <e1Detector id="det_e2_i1" lane="e2_0" pos="80" freq="30" file="det_e2_i1.xml"/>
+    <e1Detector id="det_e3-_i1" lane="e3-_0" pos="80" freq="30" file="det_e3-_i1.xml"/>
+    <e1Detector id="det_e12-_i1" lane="e12-_0" pos="80" freq="30" file="det_e12-_i1.xml"/>
+    
+    <!-- Intersection i2 -->
+    <e1Detector id="det_e3_i2" lane="e3_0" pos="80" freq="30" file="det_e3_i2.xml"/>
+    <e1Detector id="det_e4-_i2" lane="e4-_0" pos="80" freq="30" file="det_e4-_i2.xml"/>
+    <e1Detector id="det_e6-_i2" lane="e6-_0" pos="80" freq="30" file="det_e6-_i2.xml"/>
+    
+    <!-- Intersection i3 -->
+    <e1Detector id="det_e6_i3" lane="e6_0" pos="80" freq="30" file="det_e6_i3.xml"/>
+    <e1Detector id="det_e7-_i3" lane="e7-_0" pos="80" freq="30" file="det_e7-_i3.xml"/>
+    <e1Detector id="det_e9-_i3" lane="e9-_0" pos="80" freq="30" file="det_e9-_i3.xml"/>
+    
+    <!-- Intersection i4 -->
+    <e1Detector id="det_e9_i4" lane="e9_0" pos="80" freq="30" file="det_e9_i4.xml"/>
+    <e1Detector id="det_e10-_i4" lane="e10-_0" pos="80" freq="30" file="det_e10-_i4.xml"/>
+    <e1Detector id="det_e12-_i4" lane="e12-_0" pos="80" freq="30" file="det_e12-_i4.xml"/>
+    
+    <!-- Détecteurs pour détecter les bus -->
+    <e1Detector id="bus_det_e2" lane="e2_1" pos="70" freq="1" file="bus_det_e2.xml"/>
+    <e1Detector id="bus_det_e3" lane="e3_1" pos="70" freq="1" file="bus_det_e3.xml"/>
+    <e1Detector id="bus_det_e4" lane="e4_1" pos="70" freq="1" file="bus_det_e4.xml"/>
+    <e1Detector id="bus_det_e6" lane="e6_1" pos="70" freq="1" file="bus_det_e6.xml"/>
+    <e1Detector id="bus_det_e7" lane="e7_1" pos="70" freq="1" file="bus_det_e7.xml"/>
+</additional>

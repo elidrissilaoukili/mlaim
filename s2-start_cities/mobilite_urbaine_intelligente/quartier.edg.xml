@@ -1,0 +1,8 @@
+<edges>
+    <edge id="edge1" from="i1" to="i2" speed="13.89" numLanes="1" />
+    <edge id="edge2" from="i2" to="i1" speed="13.89" numLanes="1" />
+    <edge id="edge3" from="i1" to="i3" speed="8.33" numLanes="1" />
+    <edge id="edge4" from="i3" to="i1" speed="8.33" numLanes="1" />
+    <!-- Continue jusqu'à 8 routes -->
+</edges>
+  

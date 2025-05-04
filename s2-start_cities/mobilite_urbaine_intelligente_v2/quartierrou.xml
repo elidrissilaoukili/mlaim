@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/routes_file.xsd">
+    <!-- Définition des types de véhicules avec des émissions valides -->
+    <vType id="car" accel="2.6" decel="4.5" sigma="0.5" length="5" minGap="2.5" maxSpeed="50" 
+           emissionClass="HBEFA3/PC_G_EU4" guiShape="passenger"/>
+    
+    <vType id="bus" accel="1.2" decel="3.0" sigma="0.5" length="12" minGap="3.0" maxSpeed="40" 
+           emissionClass="HBEFA3/Bus" guiShape="bus" color="1,0,0"/>
+    
+    <vType id="bicycle" accel="1.0" decel="3.0" sigma="0.5" length="1.8" minGap="1.0" maxSpeed="25" 
+           emissionClass="Zero" guiShape="bicycle" color="0,1,0"/>
+
+    <!-- Reste du fichier inchangé -->
+    <route id="route_est_ouest" edges="e1 e2 e3 e4 e5"/>
+    <!-- ... autres routes ... -->
+</routes>
