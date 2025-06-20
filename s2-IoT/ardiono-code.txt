@@ -1,0 +1,541 @@
+/* Edge Impulse Arduino examples avec contrôle LEDs et Servo
+ * Système de reconnaissance faciale avec feedback visuel
+ * Version corrigée - résolution des erreurs de compilation et linker
+ */
+
+#include <face-detection-elidrissi_inferencing.h>
+#include "edge-impulse-sdk/dsp/image/image.hpp"
+#include "esp_camera.h"
+#include <ESP32Servo.h>
+
+// Définition des pins pour LEDs et Servo
+#define LED_AUTHORIZED_PIN    4    // LED Verte pour accès autorisé
+#define LED_UNAUTHORIZED_PIN  2    // LED Rouge pour accès refusé
+#define SERVO_PIN            12    // Pin du servo moteur
+
+// Objets servo et variables
+Servo myservo;
+
+// Configuration caméra (modèle AI_THINKER)
+#define CAMERA_MODEL_AI_THINKER
+
+#if defined(CAMERA_MODEL_AI_THINKER)
+#define PWDN_GPIO_NUM     32
+#define RESET_GPIO_NUM    -1
+#define XCLK_GPIO_NUM      0
+#define SIOD_GPIO_NUM     26
+#define SIOC_GPIO_NUM     27
+
+#define Y9_GPIO_NUM       35
+#define Y8_GPIO_NUM       34
+#define Y7_GPIO_NUM       39
+#define Y6_GPIO_NUM       36
+#define Y5_GPIO_NUM       21
+#define Y4_GPIO_NUM       19
+#define Y3_GPIO_NUM       18
+#define Y2_GPIO_NUM        5
+#define VSYNC_GPIO_NUM    25
+#define HREF_GPIO_NUM     23
+#define PCLK_GPIO_NUM     22
+#endif
+
+/* Constantes */
+#define EI_CAMERA_RAW_FRAME_BUFFER_COLS           320
+#define EI_CAMERA_RAW_FRAME_BUFFER_ROWS           240
+#define EI_CAMERA_FRAME_BYTE_SIZE                 3
+
+/* Variables privées */
+static bool debug_nn = false;
+static bool is_initialised = false;
+uint8_t *snapshot_buf = nullptr;
+
+// Configuration camera avec paramètres optimisés
+static camera_config_t camera_config = {
+    .pin_pwdn = PWDN_GPIO_NUM,
+    .pin_reset = RESET_GPIO_NUM,
+    .pin_xclk = XCLK_GPIO_NUM,
+    .pin_sscb_sda = SIOD_GPIO_NUM,
+    .pin_sscb_scl = SIOC_GPIO_NUM,
+
+    .pin_d7 = Y9_GPIO_NUM,
+    .pin_d6 = Y8_GPIO_NUM,
+    .pin_d5 = Y7_GPIO_NUM,
+    .pin_d4 = Y6_GPIO_NUM,
+    .pin_d3 = Y5_GPIO_NUM,
+    .pin_d2 = Y4_GPIO_NUM,
+    .pin_d1 = Y3_GPIO_NUM,
+    .pin_d0 = Y2_GPIO_NUM,
+    .pin_vsync = VSYNC_GPIO_NUM,
+    .pin_href = HREF_GPIO_NUM,
+    .pin_pclk = PCLK_GPIO_NUM,
+
+    .xclk_freq_hz = 20000000,
+    .ledc_timer = LEDC_TIMER_0,
+    .ledc_channel = LEDC_CHANNEL_0,
+
+    .pixel_format = PIXFORMAT_JPEG,
+    .frame_size = FRAMESIZE_QVGA,    // 320x240
+    .jpeg_quality = 12,              // Qualité légèrement réduite pour économiser la mémoire
+    .fb_count = 1,                   // Single buffering pour réduire l'usage mémoire
+    .fb_location = CAMERA_FB_IN_PSRAM,
+    .grab_mode = CAMERA_GRAB_WHEN_EMPTY,
+};
+
+// Déclarations des fonctions de caméra
+bool ei_camera_init(void);
+void ei_camera_deinit(void);
+bool ei_camera_capture(uint32_t img_width, uint32_t img_height, uint8_t *out_buf);
+static int ei_camera_get_data(size_t offset, size_t length, float *out_ptr);
+
+/* Fonctions de contrôle LEDs */
+void turnOffAllLEDs() {
+    digitalWrite(LED_AUTHORIZED_PIN, LOW);
+    digitalWrite(LED_UNAUTHORIZED_PIN, LOW);
+}
+
+void indicateAuthorized() {
+    turnOffAllLEDs();
+    digitalWrite(LED_AUTHORIZED_PIN, HIGH);
+    Serial.println("LED Verte: ACTIVÉE - Accès Autorisé");
+}
+
+void indicateUnauthorized() {
+    turnOffAllLEDs();
+    digitalWrite(LED_UNAUTHORIZED_PIN, HIGH);
+    Serial.println("LED Rouge: ACTIVÉE - Accès Refusé");
+}
+
+void blinkUnauthorized(int times) {
+    for(int i = 0; i < times; i++) {
+        digitalWrite(LED_UNAUTHORIZED_PIN, HIGH);
+        delay(200);
+        digitalWrite(LED_UNAUTHORIZED_PIN, LOW);
+        delay(200);
+    }
+}
+
+/* Fonction de contrôle du servo avec vérification */
+void openDoor() {
+    Serial.println("🔓 Ouverture de la porte...");
+    
+    // Vérifier si le servo est attaché
+    if (!myservo.attached()) {
+        myservo.attach(SERVO_PIN);
+        delay(100);
+    }
+    
+    // Séquence d'ouverture progressive
+    for (int pos = 90; pos <= 180; pos += 10) {
+        myservo.write(pos);
+        delay(50);
+    }
+    
+    delay(2000); // Maintenir ouvert
+    
+    // Fermeture progressive
+    for (int pos = 180; pos >= 90; pos -= 10) {
+        myservo.write(pos);
+        delay(50);
+    }
+    
+    Serial.println("✅ Séquence d'ouverture terminée");
+}
+
+/* Fonction de prédiction avec gestion d'erreurs et diagnostic */
+const char* get_prediction_label(ei_impulse_result_t* result) {
+    if (!result) {
+        Serial.println("❌ Résultat de prédiction null");
+        return "error";
+    }
+    
+    float max_confidence = 0.0;
+    const char* predicted_label = "unknown";
+    int best_index = -1;
+    
+    // Diagnostic détaillé des classes disponibles
+    Serial.println("\n=== DIAGNOSTIC CLASSES ===");
+    Serial.printf("Nombre de classes: %d\n", EI_CLASSIFIER_LABEL_COUNT);
+    
+    for (uint16_t i = 0; i < EI_CLASSIFIER_LABEL_COUNT; i++) {
+        Serial.printf("Classe %d: '%s' = %.4f (%.2f%%)\n", 
+                      i, 
+                      ei_classifier_inferencing_categories[i], 
+                      result->classification[i].value,
+                      result->classification[i].value * 100);
+                      
+        if (result->classification[i].value > max_confidence) {
+            max_confidence = result->classification[i].value;
+            predicted_label = ei_classifier_inferencing_categories[i];
+            best_index = i;
+        }
+    }
+    
+    Serial.printf("Meilleure prédiction: Index %d, Classe '%s', Confiance %.4f\n", 
+                  best_index, predicted_label, max_confidence);
+    
+    // Seuil de confiance
+    if (max_confidence > 0.6f) {
+        Serial.printf("✅ Confiance suffisante (%.2f%% > 60%%)\n", max_confidence * 100);
+        return predicted_label;
+    } else {
+        Serial.printf("❌ Confiance insuffisante (%.2f%% < 60%%)\n", max_confidence * 100);
+        return "unknown";
+    }
+}
+
+void setup() {
+    Serial.begin(115200);
+    while (!Serial && millis() < 3000); // Timeout réduit
+    
+    Serial.println("=== Système de Reconnaissance Faciale ===");
+    Serial.println("Initialisation des composants...");
+    
+    // Vérification de la PSRAM
+    if (!psramFound()) {
+        Serial.println("⚠  PSRAM non détectée - performances réduites");
+    } else {
+        Serial.printf("✅ PSRAM détectée: %d bytes libres\n", ESP.getFreePsram());
+    }
+    
+    // Configuration des pins LEDs
+    pinMode(LED_AUTHORIZED_PIN, OUTPUT);
+    pinMode(LED_UNAUTHORIZED_PIN, OUTPUT);
+    turnOffAllLEDs();
+    
+    // Test des LEDs au démarrage
+    Serial.println("Test des LEDs...");
+    digitalWrite(LED_AUTHORIZED_PIN, HIGH);
+    delay(300);
+    digitalWrite(LED_UNAUTHORIZED_PIN, HIGH);
+    delay(300);
+    turnOffAllLEDs();
+    
+    // Initialisation du servo simplifiée
+    myservo.attach(SERVO_PIN);
+    myservo.write(90); // Position neutre
+    delay(500);
+    Serial.println("✅ Servo initialisé");
+    
+    // Initialisation de la caméra avec retry
+    int camera_init_attempts = 0;
+    const int max_attempts = 3;
+    
+    while (camera_init_attempts < max_attempts) {
+        if (ei_camera_init()) {
+            Serial.println("✅ Caméra initialisée");
+            indicateAuthorized();
+            delay(1000);
+            turnOffAllLEDs();
+            break;
+        } else {
+            camera_init_attempts++;
+            Serial.printf("❌ Tentative %d/%d échouée\n", camera_init_attempts, max_attempts);
+            if (camera_init_attempts < max_attempts) {
+                delay(2000);
+            }
+        }
+    }
+    
+    if (camera_init_attempts >= max_attempts) {
+        Serial.println("❌ Impossible d'initialiser la caméra!");
+        blinkUnauthorized(10);
+        while(1) delay(1000); // Arrêt du programme
+    }
+
+    Serial.println("\n🚀 Démarrage de la reconnaissance en continu...");
+    Serial.println("📋 INFORMATIONS DE DEBUG:");
+    Serial.printf("   - Modèle: face-detection-elidrissi\n");
+    Serial.printf("   - Seuil de confiance: 60%%\n");
+    Serial.printf("   - Classes recherchées: 'authorized', 'elidrissi'\n");
+    Serial.printf("   - Taille d'entrée: %dx%d pixels\n", EI_CLASSIFIER_INPUT_WIDTH, EI_CLASSIFIER_INPUT_HEIGHT);
+    delay(2000);
+}
+
+void loop() {
+    // Vérification de la mémoire disponible
+    size_t free_heap = ESP.getFreeHeap();
+    if (free_heap < 40000) {
+        Serial.printf("⚠  Mémoire faible (%d bytes), nettoyage...\n", free_heap);
+        if (snapshot_buf != nullptr) {
+            free(snapshot_buf);
+            snapshot_buf = nullptr;
+        }
+        delay(1000);
+        return;
+    }
+    
+    // Attente entre les captures
+    delay(500);
+
+    // Allocation sécurisée du buffer
+    size_t buffer_size = EI_CAMERA_RAW_FRAME_BUFFER_COLS * EI_CAMERA_RAW_FRAME_BUFFER_ROWS * EI_CAMERA_FRAME_BYTE_SIZE;
+    
+    // Libérer le buffer précédent
+    if (snapshot_buf != nullptr) {
+        free(snapshot_buf);
+        snapshot_buf = nullptr;
+    }
+    
+    // Essayer d'allouer en PSRAM d'abord, puis en heap
+    snapshot_buf = (uint8_t*)ps_malloc(buffer_size);
+    if (snapshot_buf == nullptr) {
+        snapshot_buf = (uint8_t*)malloc(buffer_size);
+        if (snapshot_buf == nullptr) {
+            Serial.println("❌ Erreur allocation mémoire!");
+            blinkUnauthorized(3);
+            delay(5000);
+            return;
+        }
+    }
+
+    // Configuration du signal pour l'inférence
+    ei::signal_t signal;
+    signal.total_length = EI_CLASSIFIER_INPUT_WIDTH * EI_CLASSIFIER_INPUT_HEIGHT;
+    signal.get_data = &ei_camera_get_data;
+
+    // Capture de l'image avec vérification
+    Serial.println("📸 Capture d'image...");
+    if (!ei_camera_capture((size_t)EI_CLASSIFIER_INPUT_WIDTH, (size_t)EI_CLASSIFIER_INPUT_HEIGHT, snapshot_buf)) {
+        Serial.println("❌ Échec capture image");
+        if (snapshot_buf != nullptr) {
+            free(snapshot_buf);
+            snapshot_buf = nullptr;
+        }
+        blinkUnauthorized(2);
+        delay(2000);
+        return;
+    }
+
+    // Exécution du classificateur
+    Serial.println("🧠 Analyse en cours...");
+    ei_impulse_result_t result = { 0 };
+    EI_IMPULSE_ERROR err = run_classifier(&signal, &result, debug_nn);
+    
+    if (err != EI_IMPULSE_OK) {
+        Serial.printf("❌ Erreur classificateur (%d)\n", err);
+        if (snapshot_buf != nullptr) {
+            free(snapshot_buf);
+            snapshot_buf = nullptr;
+        }
+        blinkUnauthorized(2);
+        delay(2000);
+        return;
+    }
+
+    // Obtenir la prédiction
+    const char* predicted_label = get_prediction_label(&result);
+    
+    // Affichage des résultats détaillés
+    Serial.println("\n--- Résultats de Reconnaissance ---");
+    Serial.printf("Temps DSP: %d ms, Classification: %d ms\n", 
+                  result.timing.dsp, result.timing.classification);
+    Serial.printf("Mémoire libre: %d bytes\n", ESP.getFreeHeap());
+    
+    for (uint16_t i = 0; i < EI_CLASSIFIER_LABEL_COUNT; i++) {
+        Serial.printf("  %s: %.2f%%\n", 
+                      ei_classifier_inferencing_categories[i], 
+                      result.classification[i].value * 100);
+    }
+    
+    // Actions basées sur la prédiction
+    Serial.printf("\n=== DÉCISION D'ACCÈS ===\n");
+    Serial.printf("Prédiction reçue: '%s'\n", predicted_label);
+    
+    // Vérification stricte des classes autorisées
+    bool is_authorized = false;
+    
+    // Liste des classes autorisées (ajustez selon votre modèle)
+    if (strcmp(predicted_label, "elidrissi") == 0 || 
+        strcmp(predicted_label, "authorized") == 0) {
+        is_authorized = true;
+    }
+    
+    Serial.printf("Résultat autorisation: %s\n", is_authorized ? "AUTORISÉ" : "REFUSÉ");
+    
+    if (is_authorized) {
+        Serial.println("\n🟢 ACCÈS AUTORISÉ - Visage reconnu!");
+        indicateAuthorized();
+        openDoor();
+        delay(3000);
+        turnOffAllLEDs();
+        
+    } else if (strcmp(predicted_label, "unknown") == 0) {
+        Serial.println("\n🔴 ACCÈS REFUSÉ - Confiance insuffisante");
+        indicateUnauthorized();
+        delay(2000);
+        turnOffAllLEDs();
+        
+    } else if (strcmp(predicted_label, "error") == 0) {
+        Serial.println("\n⚠  ERREUR - Problème de traitement");
+        blinkUnauthorized(5);
+        delay(1000);
+        turnOffAllLEDs();
+        
+    } else {
+        Serial.printf("\n🔴 ACCÈS REFUSÉ - Classe détectée: '%s'\n", predicted_label);
+        indicateUnauthorized();
+        blinkUnauthorized(3);
+        delay(1000);
+        turnOffAllLEDs();
+    }
+
+    // Nettoyage mémoire
+    if (snapshot_buf != nullptr) {
+        free(snapshot_buf);
+        snapshot_buf = nullptr;
+    }
+    
+    Serial.println("-----------------------------------\n");
+    delay(2000); // Pause entre les cycles
+}
+
+/* Fonctions de la caméra avec gestion d'erreurs améliorée */
+bool ei_camera_init(void) {
+    if (is_initialised) return true;
+
+    Serial.println("Initialisation caméra...");
+    
+    // Réinitialisation si nécessaire
+    esp_camera_deinit();
+    delay(100);
+
+    esp_err_t err = esp_camera_init(&camera_config);
+    if (err != ESP_OK) {
+        Serial.printf("❌ Camera init failed: 0x%x\n", err);
+        return false;
+    }
+
+    sensor_t * s = esp_camera_sensor_get();
+    if (s == nullptr) {
+        Serial.println("❌ Impossible d'obtenir le capteur");
+        return false;
+    }
+    
+    // Configuration spécifique selon le capteur
+    if (s->id.PID == OV3660_PID) {
+        s->set_vflip(s, 1);
+        s->set_brightness(s, 1);
+        s->set_saturation(s, 0);
+    } else if (s->id.PID == OV2640_PID) {
+        s->set_vflip(s, 1);
+        s->set_hmirror(s, 0);
+        s->set_brightness(s, 0);
+        s->set_contrast(s, 1);
+    }
+
+    // Test de capture pour vérifier le fonctionnement
+    camera_fb_t *fb = esp_camera_fb_get();
+    if (!fb) {
+        Serial.println("❌ Test capture échoué");
+        return false;
+    }
+    esp_camera_fb_return(fb);
+
+    is_initialised = true;
+    Serial.println("✅ Caméra prête");
+    return true;
+}
+
+void ei_camera_deinit(void) {
+    if (!is_initialised) return;
+    
+    esp_err_t err = esp_camera_deinit();
+    if (err != ESP_OK) {
+        Serial.printf("❌ Camera deinit failed: 0x%x\n", err);
+    }
+    is_initialised = false;
+}
+
+bool ei_camera_capture(uint32_t img_width, uint32_t img_height, uint8_t *out_buf) {
+    if (!is_initialised) {
+        Serial.println("❌ Caméra non initialisée");
+        return false;
+    }
+
+    if (!out_buf) {
+        Serial.println("❌ Buffer de sortie null");
+        return false;
+    }
+
+    // Capture avec timeout
+    camera_fb_t *fb = nullptr;
+    int attempts = 0;
+    const int max_capture_attempts = 3;
+    
+    while (attempts < max_capture_attempts && !fb) {
+        fb = esp_camera_fb_get();
+        if (!fb) {
+            attempts++;
+            Serial.printf("Tentative capture %d/%d...\n", attempts, max_capture_attempts);
+            delay(100);
+        }
+    }
+    
+    if (!fb) {
+        Serial.println("❌ Impossible de capturer l'image");
+        return false;
+    }
+    
+    if (fb->len == 0) {
+        Serial.println("❌ Image vide capturée");
+        esp_camera_fb_return(fb);
+        return false;
+    }
+
+    Serial.printf("Image capturée: %dx%d, %d bytes\n", fb->width, fb->height, fb->len);
+
+    // Conversion avec vérification
+    bool converted = fmt2rgb888(fb->buf, fb->len, PIXFORMAT_JPEG, out_buf);
+    esp_camera_fb_return(fb);
+
+    if (!converted) {
+        Serial.println("❌ Échec conversion image");
+        return false;
+    }
+
+    // Redimensionnement si nécessaire
+    if ((img_width != EI_CAMERA_RAW_FRAME_BUFFER_COLS) || (img_height != EI_CAMERA_RAW_FRAME_BUFFER_ROWS)) {
+        ei::image::processing::crop_and_interpolate_rgb888(
+            out_buf,
+            EI_CAMERA_RAW_FRAME_BUFFER_COLS,
+            EI_CAMERA_RAW_FRAME_BUFFER_ROWS,
+            out_buf,
+            img_width,
+            img_height);
+    }
+
+    return true;
+}
+
+static int ei_camera_get_data(size_t offset, size_t length, float *out_ptr) {
+    if (!out_ptr || !snapshot_buf) {
+        return -1;
+    }
+    
+    size_t pixel_ix = offset * 3;
+    size_t pixels_left = length;
+    size_t out_ptr_ix = 0;
+
+    // Vérification des limites
+    size_t max_pixels = EI_CAMERA_RAW_FRAME_BUFFER_COLS * EI_CAMERA_RAW_FRAME_BUFFER_ROWS;
+    if (offset + length > max_pixels) {
+        Serial.println("❌ Dépassement de buffer dans get_data");
+        return -1;
+    }
+
+    while (pixels_left != 0) {
+        // Conversion RGB vers format attendu par Edge Impulse
+        out_ptr[out_ptr_ix] = (snapshot_buf[pixel_ix + 2] << 16) + 
+                              (snapshot_buf[pixel_ix + 1] << 8) + 
+                              snapshot_buf[pixel_ix];
+        out_ptr_ix++;
+        pixel_ix += 3;
+        pixels_left--;
+    }
+    
+    return 0;
+}
+
+#if !defined(EI_CLASSIFIER_SENSOR) || EI_CLASSIFIER_SENSOR != EI_CLASSIFIER_SENSOR_CAMERA
+#error "Invalid model for current sensor"
+#endif

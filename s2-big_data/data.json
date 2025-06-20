@@ -1,0 +1,116 @@
+[
+    {
+        "_category_": "client_event",
+        "format_version": 2,
+        "triggered_on": 1750431898891,
+        "profile_id": "2191785496",
+        "items": [
+            {
+                "item_type": 0,
+                "id": "1935978438260900169",
+                "author_id": "1652541",
+                "is_viewer_follows_tweet_author": false,
+                "is_tweet_author_follows_viewer": false,
+                "is_viewer_super_following_tweet_author": false,
+                "is_viewer_super_followed_by_tweet_author": false,
+                "is_tweet_author_super_followable": false,
+                "media_details": {
+                    "photo_count": 0,
+                    "content_id": "1935960176429092864",
+                    "publisher_id": "1652541",
+                    "media_type": 1,
+                    "dynamic_ads": false
+                },
+                "media_details_v2": [
+                    {
+                        "content_id": "1935960176429092864",
+                        "publisher_id": "1652541",
+                        "media_type": 1,
+                        "dynamic_ads": false
+                    }
+                ],
+                "engagement_metrics": {
+                    "reply_count": 14,
+                    "retweet_count": 42,
+                    "favorite_count": 135,
+                    "quote_count": 8
+                },
+                "media_asset_url": "https://video.twimg.com/amplify_video/1935960176429092864/pl/Jdsd_VeNzfptAvDa.m3u8?tag=16&v=587",
+                "video_uuid": "1935960176429092864",
+                "video_owner_id": "1652541",
+                "video_type": "video",
+                "content_id": "1935960176429092864",
+                "publisher_id": "1652541",
+                "media_session_id": "07bb1d35-be5a-4922-a6ff-2d961e59eba1",
+                "client_media_event": {
+                    "media_client_event_type": {
+                        "heartbeat": {
+                            "buffering_duration_millis": "0",
+                            "buffering_count": 0,
+                            "percent_in_view": 100,
+                            "sampled_bits_per_second": 171502,
+                            "data_usage_bytes": "82074",
+                            "start_program_date_time_millis": "4788",
+                            "end_program_date_time_millis": "9833",
+                            "audible_duration_millis": "0",
+                            "video_duration_millis": "123303",
+                            "bitrate_metrics": {
+                                "min_bps": 171502,
+                                "max_bps": 171502,
+                                "avg_bps": 171502
+                            },
+                            "live_or_non_live_heartbeat_metrics": {
+                                "non_live_heartbeat_metrics": {}
+                            }
+                        }
+                    },
+                    "session_state": {
+                        "session_id": "07bb1d35-be5a-4922-a6ff-2d961e59eba1",
+                        "content_video_identifier": {
+                            "media_platform_identifier": {
+                                "media_category": 13,
+                                "media_id": "1935960176429092864"
+                            }
+                        },
+                        "tweet_id": "1935978438260900169"
+                    },
+                    "playing_media_state": {
+                        "video_type": 2,
+                        "media_asset_url": "https://video.twimg.com/amplify_video/1935960176429092864/pl/Jdsd_VeNzfptAvDa.m3u8?tag=16&v=587",
+                        "media_metadata": {
+                            "twitter_publisher_id": "1652541",
+                            "publisher_identifier": {
+                                "twitter_publisher_identifier": {
+                                    "id": "1652541"
+                                }
+                            }
+                        }
+                    },
+                    "player_state": {
+                        "is_muted": true
+                    }
+                },
+                "video_visibility": 100,
+                "buffering_duration_millis": 0,
+                "video_duration_millis": 123303,
+                "start_program_date_time_millis": 4788,
+                "end_program_date_time_millis": 9833,
+                "sampled_bitrate": 171502,
+                "data_usage_bytes": 82074,
+                "live_broadcast_details": {},
+                "live_video_event_details": {}
+            }
+        ],
+        "event_namespace": {
+            "page": "profile",
+            "section": "tweets",
+            "component": "tweet",
+            "element": "video_player",
+            "action": "heartbeat",
+            "client": "m5"
+        },
+        "client_event_sequence_start_timestamp": 1750431857846,
+        "client_event_sequence_number": 45,
+        "client_app_id": "3033300"
+    }
+]

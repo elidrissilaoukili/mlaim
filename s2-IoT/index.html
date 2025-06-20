@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Face Recognition ESP32-CAM with Edge Impulse - Project Documentation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: "#2563eb",
+              secondary: "#1e40af",
+              accent: "#3b82f6",
+            },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body class="bg-gray-50 text-gray-800">
+    <!-- Modal for images and videos -->
+    <!-- <div id="modal" class="fixed inset-0 bg-black bg-opacity-75 hidden z-50 flex items-center justify-center p-4">
+      <div class="relative max-w-4xl max-h-full">
+        <button onclick="closeModal()" class="absolute -top-10 right-0 text-white text-2xl hover:text-gray-300">✕ Close</button>
+        <div id="modal-content" class="bg-white rounded-lg p-2"></div>
+      </div>
+    </div> -->
+
+    <div id="modal" class="fixed inset-0 bg-black bg-opacity-75 hidden z-50 flex items-center justify-center p-4">
+      <div class="relative w-full max-w-4xl h-[500px]">
+        <button onclick="closeModal()" class="absolute -top-10 right-0 text-white text-2xl hover:text-gray-300">✕ Close</button>
+        <div id="modal-content" class="w-full h-full bg-white rounded-lg p-2 flex items-center justify-center overflow-hidden">
+          <!-- Video gets injected here -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-primary to-secondary text-white py-16">
+      <div class="container mx-auto px-6 text-center">
+        <h1 class="text-4xl md:text-6xl font-bold mb-4">Face Recognition Smart Access System</h1>
+        <p class="text-xl md:text-2xl mb-8">ESP32-CAM + Edge Impulse Implementation</p>
+        <div class="flex flex-wrap justify-center gap-4 text-sm md:text-base">
+          <span class="bg-white bg-opacity-20 px-4 py-2 rounded-full">Edge Impulse</span>
+          <span class="bg-white bg-opacity-20 px-4 py-2 rounded-full">ESP32-CAM</span>
+          <span class="bg-white bg-opacity-20 px-4 py-2 rounded-full">Arduino</span>
+          <span class="bg-white bg-opacity-20 px-4 py-2 rounded-full">Servo Motor</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg sticky top-0 z-40">
+      <div class="container mx-auto px-6">
+        <div class="flex flex-wrap justify-center gap-4 py-4 text-sm md:text-base">
+          <a href="#introduction" class="hover:text-primary transition-colors">Introduction</a>
+          <a href="#methodology" class="hover:text-primary transition-colors">Methodology</a>
+          <a href="#implementation" class="hover:text-primary transition-colors">Implementation</a>
+          <a href="#results" class="hover:text-primary transition-colors">Results</a>
+          <a href="#media-gallery" class="hover:text-primary transition-colors">Media Gallery</a>
+          <a href="#conclusion" class="hover:text-primary transition-colors">Conclusion</a>
+          <a href="#resources" class="hover:text-primary transition-colors">Resources</a>
+        </div>
+      </div>
+    </nav>
+
+    <main class="container mx-auto px-6 py-8">
+      <!-- Introduction Section -->
+      <section id="introduction" class="mb-16">
+        <h2 class="text-3xl font-bold text-primary mb-8">Introduction & Problem Statement</h2>
+        <div class="grid md:grid-cols-2 gap-8">
+          <div class="bg-white rounded-lg shadow-lg p-6">
+            <h3 class="text-xl font-semibold mb-4">Project Goal</h3>
+            <ul class="space-y-2 text-gray-700">
+              <li>• Build a smart access control system using face recognition</li>
+              <li>• Based on affordable, low-power devices</li>
+              <li>• Uses AI at the edge for real-time decision-making</li>
+              <li>• Fully integrated with hardware to simulate real-life access control</li>
+            </ul>
+          </div>
+          <div class="bg-white rounded-lg shadow-lg p-6">
+            <h3 class="text-xl font-semibold mb-4">Problem Statement</h3>
+            <ul class="space-y-2 text-gray-700">
+              <li>• Manual access systems are insecure and slow</li>
+              <li>• Cloud-based AI systems require constant internet</li>
+              <li>• Need for a <strong>low-cost</strong>, <strong>offline</strong>, <strong>real-time</strong> face recognition solution</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Objectives Section -->
+      <section id="objectives" class="mb-16">
+        <h2 class="text-3xl font-bold text-primary mb-8">Project Objectives</h2>
+        <div class="bg-white rounded-lg shadow-lg p-6">
+          <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="text-center">
+              <div class="bg-primary text-white w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 text-xl">1</div>
+              <h3 class="font-semibold mb-2">Face Recognition</h3>
+              <p class="text-gray-600 text-sm">Recognize faces directly on ESP32-CAM</p>
+            </div>
+            <div class="text-center">
+              <div class="bg-primary text-white w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 text-xl">2</div>
+              <h3 class="font-semibold mb-2">User Classification</h3>
+              <p class="text-gray-600 text-sm">Distinguish between authorized and unauthorized users</p>
+            </div>
+            <div class="text-center">
+              <div class="bg-primary text-white w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 text-xl">3</div>
+              <h3 class="font-semibold mb-2">Action Control</h3>
+              <p class="text-gray-600 text-sm">Act upon detection (open door or deny access)</p>
+            </div>
+            <div class="text-center">
+              <div class="bg-primary text-white w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 text-xl">4</div>
+              <h3 class="font-semibold mb-2">Visual Feedback</h3>
+              <p class="text-gray-600 text-sm">Provide visual feedback using LEDs</p>
+            </div>
+            <div class="text-center">
+              <div class="bg-primary text-white w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 text-xl">5</div>
+              <h3 class="font-semibold mb-2">Door Simulation</h3>
+              <p class="text-gray-600 text-sm">Simulate door mechanism using servo motor</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Methodology Section -->
+      <section id="methodology" class="mb-16">
+        <h2 class="text-3xl font-bold text-primary mb-8">Methodology & Implementation Steps</h2>
+
+        <!-- Step-by-step process -->
+        <div class="space-y-6">
+          <div class="bg-white rounded-lg shadow-lg p-6 border-l-4 border-primary">
+            <h3 class="text-xl font-semibold mb-3">Step 1: Initial Approach with Object Detection</h3>
+            <p class="text-gray-700">We started with object detection because it is simpler for training and testing. Object detection helped us understand the system integration but wasn't sufficient for secure access control.</p>
+          </div>
+
+          <div class="bg-white rounded-lg shadow-lg p-6 border-l-4 border-secondary">
+            <h3 class="text-xl font-semibold mb-3">Step 2: Background Removal Experiment</h3>
+            <p class="text-gray-700">We attempted to remove backgrounds from images thinking it would improve accuracy, but this approach did not yield the expected improvements.</p>
+          </div>
+
+          <div class="bg-white rounded-lg shadow-lg p-6 border-l-4 border-primary">
+            <h3 class="text-xl font-semibold mb-3">Step 3: Data Collection Strategy</h3>
+            <p class="text-gray-700">Started collecting images of authorized faces and random faces for unauthorized classification. This transition to face classification provided better security control.</p>
+          </div>
+
+          <div class="bg-white rounded-lg shadow-lg p-6 border-l-4 border-secondary">
+            <h3 class="text-xl font-semibold mb-3">Step 4: Model Training on Edge Impulse</h3>
+            <p class="text-gray-700">Uploaded the collected data to Edge Impulse platform and trained the face recognition model, followed by initial testing phases.</p>
+          </div>
+
+          <div class="bg-white rounded-lg shadow-lg p-6 border-l-4 border-red-500">
+            <h3 class="text-xl font-semibold mb-3">Step 5: Camera Quality Discovery</h3>
+            <p class="text-gray-700"><strong>Key Learning:</strong> We discovered that using different cameras for training (phone) and testing (webcam) resulted in poor model performance. This highlighted the importance of collecting data from various camera types and qualities.</p>
+          </div>
+
+          <div class="bg-white rounded-lg shadow-lg p-6 border-l-4 border-primary">
+            <h3 class="text-xl font-semibold mb-3">Step 6: Model Deployment</h3>
+            <p class="text-gray-700">After achieving satisfactory model performance, we deployed the trained model to the ESP32-CAM device.</p>
+          </div>
+
+          <div class="bg-white rounded-lg shadow-lg p-6 border-l-4 border-secondary">
+            <h3 class="text-xl font-semibold mb-3">Step 7: Serial Monitor Testing</h3>
+            <p class="text-gray-700">Conducted simple testing for face recognition, printing results on the serial monitor. The system successfully detected authorized and unauthorized faces.</p>
+          </div>
+
+          <div class="bg-white rounded-lg shadow-lg p-6 border-l-4 border-primary">
+            <h3 class="text-xl font-semibold mb-3">Step 8: LED Integration</h3>
+            <p class="text-gray-700">Updated the Arduino code to control LED indicators: blue lamp for authorized faces and yellow lamp for unauthorized faces.</p>
+          </div>
+
+          <div class="bg-white rounded-lg shadow-lg p-6 border-l-4 border-secondary">
+            <h3 class="text-xl font-semibold mb-3">Step 9: Servo Motor Integration</h3>
+            <p class="text-gray-700">Added servo motor functionality to simulate door opening mechanism - opening when face is authorized and remaining closed for unauthorized access.</p>
+          </div>
+
+          <div class="bg-white rounded-lg shadow-lg p-6 border-l-4 border-green-500">
+            <h3 class="text-xl font-semibold mb-3">Step 10: System Documentation</h3>
+            <p class="text-gray-700">Recorded demonstration video showing the complete system functionality and documented the entire development process.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Data Collection Guidelines -->
+      <section id="data-guidelines" class="mb-16">
+        <h2 class="text-3xl font-bold text-primary mb-8">Data Collection Best Practices</h2>
+        <div class="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg p-6">
+          <h3 class="text-xl font-semibold mb-4 text-orange-800">Key Insights for High Model Performance</h3>
+          <div class="grid md:grid-cols-2 gap-6">
+            <div>
+              <h4 class="font-semibold text-orange-700 mb-2">✓ Do's</h4>
+              <ul class="space-y-1 text-orange-800 text-sm">
+                <li>• Use the same camera type for training and testing</li>
+                <li>• Collect data from multiple camera sources if deploying on different devices</li>
+                <li>• Include various lighting conditions</li>
+                <li>• Capture different angles and distances</li>
+                <li>• Ensure consistent image quality across dataset</li>
+              </ul>
+            </div>
+            <div>
+              <h4 class="font-semibold text-red-700 mb-2">✗ Don'ts</h4>
+              <ul class="space-y-1 text-red-800 text-sm">
+                <li>• Don't rely solely on background removal for accuracy</li>
+                <li>• Don't use only high-quality images if deploying on lower-quality cameras</li>
+                <li>• Don't ignore camera-specific characteristics</li>
+                <li>• Don't use insufficient data diversity</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- System Architecture -->
+      <section id="implementation" class="mb-16">
+        <h2 class="text-3xl font-bold text-primary mb-8">System Architecture</h2>
+        <div class="bg-white rounded-lg shadow-lg p-6">
+          <div class="grid md:grid-cols-4 gap-6 text-center">
+            <div class="bg-blue-50 p-4 rounded-lg">
+              <div class="text-3xl mb-2">📷</div>
+              <h3 class="font-semibold text-blue-800">Capture</h3>
+              <p class="text-blue-600 text-sm">ESP32-CAM captures face</p>
+            </div>
+            <div class="bg-green-50 p-4 rounded-lg">
+              <div class="text-3xl mb-2">🧠</div>
+              <h3 class="font-semibold text-green-800">Inference</h3>
+              <p class="text-green-600 text-sm">Edge Impulse model classifies face</p>
+            </div>
+            <div class="bg-purple-50 p-4 rounded-lg">
+              <div class="text-3xl mb-2">⚡</div>
+              <h3 class="font-semibold text-purple-800">Decision</h3>
+              <p class="text-purple-600 text-sm">Authorize or deny access</p>
+            </div>
+            <div class="bg-orange-50 p-4 rounded-lg">
+              <div class="text-3xl mb-2">🔄</div>
+              <h3 class="font-semibold text-orange-800">Action</h3>
+              <p class="text-orange-600 text-sm">LED + servo response</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Hardware Setup -->
+      <section id="hardware" class="mb-16">
+        <h2 class="text-3xl font-bold text-primary mb-8">Hardware Components</h2>
+        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div class="bg-white rounded-lg shadow-lg p-6 text-center">
+            <div class="text-4xl mb-4">📱</div>
+            <h3 class="font-semibold mb-2">ESP32-CAM</h3>
+            <p class="text-gray-600 text-sm">Main processing unit running the model and handling detection</p>
+          </div>
+          <div class="bg-white rounded-lg shadow-lg p-6 text-center">
+            <div class="text-4xl mb-4">💙</div>
+            <h3 class="font-semibold mb-2">Blue LED</h3>
+            <p class="text-gray-600 text-sm">Lights up for authorized access</p>
+          </div>
+          <div class="bg-white rounded-lg shadow-lg p-6 text-center">
+            <div class="text-4xl mb-4">💛</div>
+            <h3 class="font-semibold mb-2">Yellow LED</h3>
+            <p class="text-gray-600 text-sm">Lights up for unauthorized faces</p>
+          </div>
+          <div class="bg-white rounded-lg shadow-lg p-6 text-center">
+            <div class="text-4xl mb-4">🔧</div>
+            <h3 class="font-semibold mb-2">Servo Motor</h3>
+            <p class="text-gray-600 text-sm">Simulates door opening/closing mechanism</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Results Section -->
+      <section id="results" class="mb-16">
+        <h2 class="text-3xl font-bold text-primary mb-8">Key Results & Achievements</h2>
+        <div class="grid md:grid-cols-3 gap-6">
+          <div class="bg-green-50 border border-green-200 rounded-lg p-6">
+            <h3 class="text-lg font-semibold text-green-800 mb-3">✓ Real-time Recognition</h3>
+            <p class="text-green-700 text-sm">Achieved low-latency face recognition with immediate hardware response</p>
+          </div>
+          <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
+            <h3 class="text-lg font-semibold text-blue-800 mb-3">✓ Offline Operation</h3>
+            <p class="text-blue-700 text-sm">Complete system works without internet connectivity</p>
+          </div>
+          <div class="bg-purple-50 border border-purple-200 rounded-lg p-6">
+            <h3 class="text-lg font-semibold text-purple-800 mb-3">✓ Hardware Integration</h3>
+            <p class="text-purple-700 text-sm">Seamless integration between AI model and physical components</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Media Gallery Section -->
+      <section id="media-gallery" class="mb-16">
+        <h2 class="text-3xl font-bold text-primary mb-8">Media Gallery</h2>
+
+        <!-- Edge Impulse Tutorial Videos -->
+        <div class="mb-12">
+          <h3 class="text-2xl font-semibold text-secondary mb-6">Edge Impulse Tutorial Videos</h3>
+          <div class="bg-white rounded-lg shadow-lg p-6">
+            <p class="text-gray-600 mb-4">Learn how to use Edge Impulse for machine learning projects</p>
+            <div class="space-y-4">
+              <div class="bg-gray-100 rounded-lg p-4 cursor-pointer hover:bg-gray-200 transition-colors" onclick="openVideoEmbed('https://www.youtube.com/embed/HDRvZ_BYd08?si=0QCDeg8IOkod6W3n')">
+                <div class="flex items-center">
+                  <div class="w-12 h-12 bg-primary rounded-lg flex items-center justify-center text-white mr-4">▶️</div>
+                  <div>
+                    <h4 class="font-semibold">Edge Impulse Tutorial</h4>
+                    <p class="text-sm text-gray-600">Complete guide to using Edge Impulse platform</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Video Modal -->
+        <div id="videoModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div class="bg-white rounded-lg p-6 relative">
+            <button onclick="closeVideoEmbed()" class="absolute top-2 right-2 text-gray-600 hover:text-red-500">✖</button>
+            <div id="videoContainer"></div>
+          </div>
+        </div>
+
+        <!-- Object detection and background removal -->
+        <div class="mb-12">
+          <h3 class="text-2xl font-semibold text-secondary mb-6">Object detection with Background removal</h3>
+          <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div class="w-full h-48 bg-gray-200 rounded-lg cursor-pointer hover:opacity-80 transition-opacity flex items-center justify-center" onclick="openImage('object-detection-background-removal-1', './data/docs/bottle-with-bg.png')">
+              <span class="text-gray-500"><img src="./data/docs/bottle-with-bg.png" alt="" /></span>
+            </div>
+            <div class="w-full h-48 bg-gray-200 rounded-lg cursor-pointer hover:opacity-80 transition-opacity flex items-center justify-center" onclick="openImage('object-detection-background-removal-2', './data/docs/bottle-processing.png')">
+              <span class="text-gray-500"><img src="./data/docs/bottle-processing.png" alt="" /></span>
+            </div>
+            <div class="w-full h-48 bg-gray-200 rounded-lg cursor-pointer hover:opacity-80 transition-opacity flex items-center justify-center" onclick="openImage('object-detection-background-removal-3', './data/docs/bottle-processing-completed.png')">
+              <span class="text-gray-500"><img src="./data/docs/bottle-processing-completed.png" alt="" /></span>
+            </div>
+            <div class="w-full h-48 bg-gray-200 rounded-lg cursor-pointer hover:opacity-80 transition-opacity flex items-center justify-center" onclick="openImage('object-detection-background-removal-4', './data/docs/bottle-with-no-bg.png')">
+              <span class="text-gray-500"><img src="./data/docs/bottle-with-no-bg.png" alt="" /></span>
+            </div>
+            <div class="w-full h-48 bg-gray-200 rounded-lg cursor-pointer hover:opacity-80 transition-opacity flex items-center justify-center" onclick="openImage('object-detection-background-removal-5', './data/docs/cup-with-bg.png')">
+              <span class="text-gray-500"><img src="./data/docs/cup-with-bg.png" alt="" /></span>
+            </div>
+            <div class="w-full h-48 bg-gray-200 rounded-lg cursor-pointer hover:opacity-80 transition-opacity flex items-center justify-center" onclick="openImage('object-detection-background-removal-6', './data/docs/cup-processing.png')">
+              <span class="text-gray-500"><img src="./data/docs/cup-processing.png" alt="" /></span>
+            </div>
+            <div class="w-full h-48 bg-gray-200 rounded-lg cursor-pointer hover:opacity-80 transition-opacity flex items-center justify-center" onclick="openImage('object-detection-background-removal-7', './data/docs/cup-with-no-bg.png')">
+              <span class="text-gray-500"><img src="./data/docs/cup-with-no-bg.png" alt="" /></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Project Hardware Images -->
+        <div class="mb-12">
+          <h3 class="text-2xl font-semibold text-secondary mb-6">Hardware Setup</h3>
+          <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div class="w-full h-48 bg-gray-200 rounded-lg cursor-pointer hover:opacity-80 transition-opacity flex items-center justify-center" onclick="openImage('hardware-1', './data/hardware/1 (1).jpg')">
+              <span class="text-gray-500"><img src="./data/hardware/1 (1).jpg" alt="" /></span>
+            </div>
+            <div class="w-full h-48 bg-gray-200 rounded-lg cursor-pointer hover:opacity-80 transition-opacity flex items-center justify-center" onclick="openImage('hardware-2', './data/hardware/1 (2).jpg')">
+              <span class="text-gray-500"><img src="./data/hardware/1 (2).jpg" alt="" /></span>
+            </div>
+            <div class="w-full h-48 bg-gray-200 rounded-lg cursor-pointer hover:opacity-80 transition-opacity flex items-center justify-center" onclick="openImage('hardware-3', './data/hardware/1 (3).jpg')">
+              <span class="text-gray-500"><img src="./data/hardware/1 (3).jpg" alt="" /></span>
+            </div>
+            <div class="w-full h-48 bg-gray-200 rounded-lg cursor-pointer hover:opacity-80 transition-opacity flex items-center justify-center" onclick="openImage('hardware-4', './data/hardware/1 (4).jpg')">
+              <span class="text-gray-500"><img src="./data/hardware/1 (4).jpg" alt="" /></span>
+            </div>
+            <div class="w-full h-48 bg-gray-200 rounded-lg cursor-pointer hover:opacity-80 transition-opacity flex items-center justify-center" onclick="openImage('hardware-5', './data/hardware/1 (5).jpg')">
+              <span class="text-gray-500"><img src="./data/hardware/1 (5).jpg" alt="" /></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Model Testing Images -->
+        <div class="mb-12">
+          <h3 class="text-2xl font-semibold text-secondary mb-6">Model Testing & Docker Deployment</h3>
+          <div class="bg-white rounded-lg shadow-lg p-6">
+            <p class="text-gray-600 mb-4">Model testing results and Docker deployment for mobility (8 testing images)</p>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div class="aspect-square bg-gray-200 rounded-lg cursor-pointer hover:opacity-80 transition-opacity overflow-hidden" onclick="openImage('test-1', './data/model-testing/model-testing-0.png')">
+                <img src="./data/model-testing/model-testing-0.png" alt="Test Result 1" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'" />
+                <div class="w-full h-full flex items-center justify-center" style="display: none">
+                  <span class="text-gray-500 text-sm text-center">Test Result 1</span>
+                </div>
+              </div>
+              <div class="aspect-square bg-gray-200 rounded-lg cursor-pointer hover:opacity-80 transition-opacity overflow-hidden" onclick="openImage('test-2', './data/model-testing/model-testing-1.png')">
+                <img src="./data/model-testing/model-testing-1.png" alt="Test Result 2" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'" />
+                <div class="w-full h-full flex items-center justify-center" style="display: none">
+                  <span class="text-gray-500 text-sm text-center">Test Result 2</span>
+                </div>
+              </div>
+              <div class="aspect-square bg-gray-200 rounded-lg cursor-pointer hover:opacity-80 transition-opacity overflow-hidden" onclick="openImage('test-3', './data/model-testing/model-testing-2.png')">
+                <img src="./data/model-testing/model-testing-2.png" alt="Test Result 3" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'" />
+                <div class="w-full h-full flex items-center justify-center" style="display: none">
+                  <span class="text-gray-500 text-sm text-center">Test Result 3</span>
+                </div>
+              </div>
+              <div class="aspect-square bg-gray-200 rounded-lg cursor-pointer hover:opacity-80 transition-opacity overflow-hidden" onclick="openImage('test-4', './data/model-testing/model-testing-3.png')">
+                <img src="./data/model-testing/model-testing-3.png" alt="Test Result 4" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'" />
+                <div class="w-full h-full flex items-center justify-center" style="display: none">
+                  <span class="text-gray-500 text-sm text-center">Test Result 4</span>
+                </div>
+              </div>
+              <div class="aspect-square bg-gray-200 rounded-lg cursor-pointer hover:opacity-80 transition-opacity overflow-hidden" onclick="openImage('test-5', './data/model-testing/model-testing-4.png')">
+                <img src="./data/model-testing/model-testing-4.png" alt="Test Result 5" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'" />
+                <div class="w-full h-full flex items-center justify-center" style="display: none">
+                  <span class="text-gray-500 text-sm text-center">Test Result 5</span>
+                </div>
+              </div>
+              <div class="aspect-square bg-gray-200 rounded-lg cursor-pointer hover:opacity-80 transition-opacity overflow-hidden" onclick="openImage('test-6', './data/model-testing/model-testing-5.png')">
+                <img src="./data/model-testing/model-testing-5.png" alt="Test Result 6" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'" />
+                <div class="w-full h-full flex items-center justify-center" style="display: none">
+                  <span class="text-gray-500 text-sm text-center">Test Result 6</span>
+                </div>
+              </div>
+              <div class="aspect-square bg-gray-200 rounded-lg cursor-pointer hover:opacity-80 transition-opacity overflow-hidden" onclick="openImage('test-7', './data/model-testing/model-testing-6.png')">
+                <img src="./data/model-testing/model-testing-6.png" alt="Test Result 7" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'" />
+                <div class="w-full h-full flex items-center justify-center" style="display: none">
+                  <span class="text-gray-500 text-sm text-center">Test Result 7</span>
+                </div>
+              </div>
+              <div class="aspect-square bg-gray-200 rounded-lg cursor-pointer hover:opacity-80 transition-opacity overflow-hidden" onclick="openImage('test-8', './data/model-testing/model-testing-7.png')">
+                <img src="./data/model-testing/model-testing-7.png" alt="Test Result 8" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'" />
+                <div class="w-full h-full flex items-center justify-center" style="display: none">
+                  <span class="text-gray-500 text-sm text-center">Test Result 8</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Data Upload Images -->
+        <div class="mb-12">
+          <h3 class="text-2xl font-semibold text-secondary mb-6">Data Upload Process</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-white rounded-lg shadow-lg p-4">
+              <div class="aspect-video bg-gray-200 rounded-lg cursor-pointer hover:opacity-80 transition-opacity flex items-center justify-center mb-3" onclick="openImage('test-8', './more-data/1-upload-auth-data.png')">
+                <img src="./more-data/1-upload-auth-data.png" alt="Test Result 8" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'" />
+              </div>
+              <p class="text-sm text-gray-600 text-center">Uploading authorized face data</p>
+            </div>
+            <div class="bg-white rounded-lg shadow-lg p-4">
+              <div class="aspect-video bg-gray-200 rounded-lg cursor-pointer hover:opacity-80 transition-opacity flex items-center justify-center mb-3" onclick="openImage('test-8', './more-data/1-upload-unauth-data.png')">
+                <img src="./more-data/1-upload-unauth-data.png" alt="Test Result 8" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'" />
+              </div>
+              <p class="text-sm text-gray-600 text-center">Uploading unauthorized face data</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Model Training Images -->
+        <div class="mb-12">
+          <h3 class="text-2xl font-semibold text-secondary mb-6">Model Training Results</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-white rounded-lg shadow-lg p-4">
+              <div class="aspect-video bg-gray-200 rounded-lg cursor-pointer hover:opacity-80 transition-opacity flex items-center justify-center mb-3" onclick="openImage('files', './more-data/trained.png')">
+                <!-- <span class="text-gray-500">Model Training Results</span> -->
+                <img src="./more-data/trained.png" alt="" />
+              </div>
+              <p class="text-sm text-gray-600 text-center">Training completion and accuracy metrics</p>
+            </div>
+            <div class="bg-white rounded-lg shadow-lg p-4">
+              <div class="aspect-video bg-gray-200 rounded-lg cursor-pointer hover:opacity-80 transition-opacity flex items-center justify-center mb-3" onclick="openImage('files', './more-data/last.png')">
+                <!-- <span class="text-gray-500">Final Edge Impulse Output</span> -->
+                <img src="./more-data/last.png" style="height: 385px" alt="" />
+              </div>
+              <p class="text-sm text-gray-600 text-center">Final model token from Edge Impulse</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Real-time Testing -->
+        <div class="mb-12">
+          <h3 class="text-2xl font-semibold text-secondary mb-6">Real-time System Testing</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="bg-white rounded-lg shadow-lg p-4">
+              <div class="aspect-video bg-gray-200 rounded-lg cursor-pointer hover:opacity-80 transition-opacity flex items-center justify-center mb-3" onclick="openVideo('./data/first-test.mp4')">
+                <div class="text-center">
+                  <!-- <div class="text-2xl mb-2">▶️</div> -->
+                  <!-- <span class="text-gray-500">Demo Video 1</span> -->
+                  <video src="./data/first-test.mp4"></video>
+                </div>
+              </div>
+              <p class="text-sm text-gray-600 text-center">System testing video (30 seconds)</p>
+            </div>
+            <div class="bg-white rounded-lg shadow-lg p-4">
+              <div class="aspect-video bg-gray-200 rounded-lg cursor-pointer hover:opacity-80 transition-opacity flex items-center justify-center mb-3" onclick="openVideo('./data/second-test.mp4')">
+                <div class="text-center" style="height: 120px">
+                  <!-- <div class="text-2xl mb-2">▶️</div> -->
+                  <!-- <span class="text-gray-500">Demo Video 2</span> -->
+                  <video src="./data/second-test.mp4" class="w-full h-full object-contain"></video>
+                </div>
+              </div>
+              <p class="text-sm text-gray-600 text-center">Additional testing footage (30 seconds)</p>
+            </div>
+            <div class="bg-white rounded-lg shadow-lg p-4">
+              <div class="aspect-video bg-gray-200 rounded-lg cursor-pointer hover:opacity-80 transition-opacity flex items-center justify-center mb-3" onclick="openImage('file', './more-data/final-result.png')">
+                <img src="./more-data/final-result.png" alt="" />
+              </div>
+              <p class="text-sm text-gray-600 text-center">Arduino serial monitor output</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Conclusion Section -->
+      <section id="conclusion" class="mb-16">
+        <h2 class="text-3xl font-bold text-primary mb-8">Conclusion & Key Learnings</h2>
+        <div class="bg-white rounded-lg shadow-lg p-8">
+          <div class="grid md:grid-cols-2 gap-8">
+            <div>
+              <h3 class="text-xl font-semibold text-primary mb-4">Project Achievements</h3>
+              <ul class="space-y-3 text-gray-700">
+                <li class="flex items-start">
+                  <span class="text-green-500 mr-2">✓</span>
+                  <span>Fully functional <strong>edge-based face recognition system</strong></span>
+                </li>
+                <li class="flex items-start">
+                  <span class="text-green-500 mr-2">✓</span>
+                  <span>Affordable, scalable, and privacy-respecting solution</span>
+                </li>
+                <li class="flex items-start">
+                  <span class="text-green-500 mr-2">✓</span>
+                  <span>Real-time processing with immediate hardware response</span>
+                </li>
+                <li class="flex items-start">
+                  <span class="text-green-500 mr-2">✓</span>
+                  <span>Complete offline operation without internet dependency</span>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h3 class="text-xl font-semibold text-primary mb-4">Important Insights</h3>
+              <ul class="space-y-3 text-gray-700">
+                <li class="flex items-start">
+                  <span class="text-blue-500 mr-2">💡</span>
+                  <span><strong>Training data variety is crucial</strong> for model performance</span>
+                </li>
+                <li class="flex items-start">
+                  <span class="text-blue-500 mr-2">💡</span>
+                  <span><strong>Background removal is not always effective</strong> for accuracy improvement</span>
+                </li>
+                <li class="flex items-start">
+                  <span class="text-blue-500 mr-2">💡</span>
+                  <span><strong>Camera consistency matters</strong> between training and deployment</span>
+                </li>
+                <li class="flex items-start">
+                  <span class="text-blue-500 mr-2">💡</span>
+                  <span>Edge computing provides <strong>privacy and speed advantages</strong></span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Future Outlook Section -->
+      <section id="outlook" class="mb-16">
+        <h2 class="text-3xl font-bold text-primary mb-8">Future Enhancements</h2>
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div class="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-lg p-6">
+            <h3 class="font-semibold text-blue-800 mb-3">🎯 Model Improvement</h3>
+            <p class="text-blue-700 text-sm">Add more faces and improve model generalization for better accuracy</p>
+          </div>
+          <div class="bg-gradient-to-br from-green-50 to-green-100 border border-green-200 rounded-lg p-6">
+            <h3 class="font-semibold text-green-800 mb-3">🌐 Web Dashboard</h3>
+            <p class="text-green-700 text-sm">Create a web dashboard for monitoring access events and system status</p>
+          </div>
+          <div class="bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 rounded-lg p-6">
+            <h3 class="font-semibold text-purple-800 mb-3">💾 Data Logging</h3>
+            <p class="text-purple-700 text-sm">Log access events to SD card or remote server for audit trail</p>
+          </div>
+          <div class="bg-gradient-to-br from-orange-50 to-orange-100 border border-orange-200 rounded-lg p-6">
+            <h3 class="font-semibold text-orange-800 mb-3">🔊 Audio Feedback</h3>
+            <p class="text-orange-700 text-sm">Support voice feedback or SMS alerts for access notifications</p>
+          </div>
+          <div class="bg-gradient-to-br from-pink-50 to-pink-100 border border-pink-200 rounded-lg p-6">
+            <h3 class="font-semibold text-pink-800 mb-3">👥 Multi-face Detection</h3>
+            <p class="text-pink-700 text-sm">Explore multi-face detection and tracking capabilities</p>
+          </div>
+          <div class="bg-gradient-to-br from-indigo-50 to-indigo-100 border border-indigo-200 rounded-lg p-6">
+            <h3 class="font-semibold text-indigo-800 mb-3">🔒 Enhanced Security</h3>
+            <p class="text-indigo-700 text-sm">Implement additional security layers and anti-spoofing measures</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Resources Section -->
+      <section id="resources" class="mb-16">
+        <h2 class="text-3xl font-bold text-primary mb-8">Resources & Downloads</h2>
+        <div class="grid md:grid-cols-2 gap-8">
+          <div class="bg-white rounded-lg shadow-lg p-6">
+            <h3 class="text-xl font-semibold mb-4">📁 Source Code</h3>
+            <p class="text-gray-600 mb-4">Download the complete project source code and documentation</p>
+            <div class="space-y-3">
+              <a href="https://github.com/elidrissilaoukili/face-recognition" target="_blank" class="block bg-primary text-white px-4 py-3 rounded-lg hover:bg-secondary transition-colors text-center">
+                <span class="font-semibold">📦 Arduino Code</span>
+                <div class="text-sm opacity-90">ESP32-CAM implementation</div>
+              </a>
+              <a href="#" class="block bg-secondary text-white px-4 py-3 rounded-lg hover:bg-primary transition-colors text-center">
+                <span class="font-semibold">🧠 Edge Impulse Model</span>
+                <div class="text-sm opacity-90">Trained model files</div>
+              </a>
+              <a href="#" class="block bg-accent text-white px-4 py-3 rounded-lg hover:bg-secondary transition-colors text-center">
+                <span class="font-semibold">🔧 Hardware Schematics</span>
+                <div class="text-sm opacity-90">Wiring diagrams and setup guide</div>
+              </a>
+            </div>
+          </div>
+          <div class="bg-white rounded-lg shadow-lg p-6">
+            <h3 class="text-xl font-semibold mb-4">📚 Documentation</h3>
+            <p class="text-gray-600 mb-4">Additional resources and guides for replication</p>
+            <div class="space-y-3">
+              <a href="#" class="block border-2 border-primary text-primary px-4 py-3 rounded-lg hover:bg-primary hover:text-white transition-colors text-center">
+                <span class="font-semibold">📖 Setup Guide</span>
+                <div class="text-sm opacity-70">Step-by-step installation</div>
+              </a>
+              <a href="#" class="block border-2 border-secondary text-secondary px-4 py-3 rounded-lg hover:bg-secondary hover:text-white transition-colors text-center">
+                <span class="font-semibold">🎓 Training Tutorial</span>
+                <div class="text-sm opacity-70">Model training walkthrough</div>
+              </a>
+              <a href="#" class="block border-2 border-accent text-accent px-4 py-3 rounded-lg hover:bg-accent hover:text-white transition-colors text-center">
+                <span class="font-semibold">🛠️ Troubleshooting</span>
+                <div class="text-sm opacity-70">Common issues and solutions</div>
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Technical Specifications -->
+      <section id="tech-specs" class="mb-16">
+        <h2 class="text-3xl font-bold text-primary mb-8">Technical Specifications</h2>
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+          <div class="bg-gradient-to-r from-primary to-secondary text-white p-6">
+            <h3 class="text-xl font-semibold">System Requirements & Performance</h3>
+          </div>
+          <div class="p-6">
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div>
+                <h4 class="font-semibold text-gray-800 mb-2">Hardware</h4>
+                <ul class="text-sm text-gray-600 space-y-1">
+                  <li>• ESP32-CAM Module</li>
+                  <li>• 2x LEDs (Blue, Yellow)</li>
+                  <li>• Servo Motor (SG90)</li>
+                  <li>• Resistors & Wiring</li>
+                  <li>• Power Supply (5V)</li>
+                </ul>
+              </div>
+              <div>
+                <h4 class="font-semibold text-gray-800 mb-2">Software</h4>
+                <ul class="text-sm text-gray-600 space-y-1">
+                  <li>• Arduino IDE</li>
+                  <li>• Edge Impulse Platform</li>
+                  <li>• ESP32 Board Package</li>
+                  <li>• Required Libraries</li>
+                  <li>• Docker (for testing)</li>
+                </ul>
+              </div>
+              <div>
+                <h4 class="font-semibold text-gray-800 mb-2">Performance</h4>
+                <ul class="text-sm text-gray-600 space-y-1">
+                  <li>• Real-time processing</li>
+                  <li>• Low latency response</li>
+                  <li>• Offline operation</li>
+                  <li>• 96x96 image resolution</li>
+                  <li>• Edge AI inference</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-12">
+      <div class="container mx-auto px-6">
+        <div class="text-center">
+          <h3 class="text-2xl font-bold mb-4">Face Recognition Smart Access System</h3>
+          <p class="text-gray-400 mb-6">An Edge AI project using ESP32-CAM and Edge Impulse</p>
+          <div class="flex justify-center space-x-6 text-sm">
+            <a href="#introduction" class="hover:text-primary transition-colors">Introduction</a>
+            <a href="#methodology" class="hover:text-primary transition-colors">Methodology</a>
+            <a href="#results" class="hover:text-primary transition-colors">Results</a>
+            <a href="#resources" class="hover:text-primary transition-colors">Resources</a>
+          </div>
+          <div class="mt-8 pt-8 border-t border-gray-700 text-gray-400 text-sm">
+            <p>&copy; 2025 Face Recognition Project. Built with ESP32-CAM and Edge Impulse.</p>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      // Modal functionality
+      function openModal() {
+        document.getElementById("modal").classList.remove("hidden");
+        document.body.style.overflow = "hidden";
+      }
+
+      function closeModal() {
+        document.getElementById("modal").classList.add("hidden");
+        document.body.style.overflow = "auto";
+        document.getElementById("modal-content").innerHTML = "";
+      }
+
+      function openImage(imageId, imageSrc) {
+        const modalContent = document.getElementById("modal-content");
+        modalContent.innerHTML = `
+                <img src="${imageSrc || "#"}" alt="${imageId}" class="max-w-full max-h-full rounded-lg" 
+                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                <div class="text-center p-8" style="display: none;
+                     background: linear-gradient(45deg, #f0f0f0 25%, transparent 25%), 
+                            linear-gradient(-45deg, #f0f0f0 25%, transparent 25%), 
+                            linear-gradient(45deg, transparent 75%, #f0f0f0 75%), 
+                            linear-gradient(-45deg, transparent 75%, #f0f0f0 75%);
+                            background-size: 20px 20px;
+                            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+                            min-height: 300px;
+                            align-items: center;
+                            justify-content: center;
+                            color: #666;">
+                    <div class="text-4xl mb-4">🖼️</div>
+                    <div class="text-lg font-semibold">${imageId}</div>
+                    <div class="text-sm text-gray-500 mt-2">Image not found - Place your image at: ${imageSrc || "images/" + imageId + ".jpg"}</div>
+                </div>
+            `;
+        openModal();
+      }
+
+      function openVideo(videoSrc) {
+        const modalContent = document.getElementById("modal-content");
+        modalContent.innerHTML = `
+    <div class="bg-black rounded-lg p-8 text-center text-white flex flex-col justify-center">
+      <div class="w-full max-w-3xl mx-auto aspect-video bg-gray-800 rounded overflow-hidden">
+        <video src="${videoSrc}" controls class="w-full h-full object-contain"></video>
+      </div>
+    </div>
+  `;
+        openModal();
+      }
+
+      function openVideoEmbed(url) {
+        const iframe = `
+    <iframe width="560" height="315" src="${url}" title="YouTube video player" frameborder="0"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+      referrerpolicy="strict-origin-when-cross-origin" allowfullscreen>
+    </iframe>`;
+
+        document.getElementById("videoContainer").innerHTML = iframe;
+        document.getElementById("videoModal").classList.remove("hidden");
+      }
+
+      function closeVideoEmbed() {
+        document.getElementById("videoModal").classList.add("hidden");
+        document.getElementById("videoContainer").innerHTML = ""; // stops video
+      }
+
+      // Smooth scrolling for navigation links
+      document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+        anchor.addEventListener("click", function (e) {
+          e.preventDefault();
+          const target = document.querySelector(this.getAttribute("href"));
+          if (target) {
+            target.scrollIntoView({
+              behavior: "smooth",
+              block: "start",
+            });
+          }
+        });
+      });
+
+      // Close modal when clicking outside
+      document.getElementById("modal").addEventListener("click", function (e) {
+        if (e.target === this) {
+          closeModal();
+        }
+      });
+
+      // Close modal with Escape key
+      document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape") {
+          closeModal();
+        }
+      });
+
+      // Add active navigation highlighting
+      window.addEventListener("scroll", function () {
+        const sections = document.querySelectorAll("section[id]");
+        const navLinks = document.querySelectorAll('nav a[href^="#"]');
+
+        let current = "";
+        sections.forEach((section) => {
+          const sectionTop = section.offsetTop;
+          const sectionHeight = section.clientHeight;
+          if (window.pageYOffset >= sectionTop - 200) {
+            current = section.getAttribute("id");
+          }
+        });
+
+        navLinks.forEach((link) => {
+          link.classList.remove("text-primary", "font-semibold");
+          if (link.getAttribute("href") === "#" + current) {
+            link.classList.add("text-primary", "font-semibold");
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
